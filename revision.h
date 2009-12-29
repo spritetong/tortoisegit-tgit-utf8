@@ -165,6 +165,8 @@ struct rev_info {
 	int count_left;
 	int count_right;
 	int count_same;
+
+	void * pPrivate;
 };
 
 #define REV_TREE_SAME		0
