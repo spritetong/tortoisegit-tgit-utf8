@@ -153,7 +153,7 @@ static void cmd_log_init_finish(int argc, const char **argv, const char *prefix,
 	setup_pager();
 }
 
-static void cmd_log_init(int argc, const char **argv, const char *prefix,
+void cmd_log_init(int argc, const char **argv, const char *prefix,
 			 struct rev_info *rev, struct setup_revision_opt *opt)
 {
 	cmd_log_init_defaults(rev);
