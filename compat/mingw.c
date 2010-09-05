@@ -7,7 +7,6 @@
 
 static const int delay[] = { 0, 1, 10, 20, 40 };
 
-int err_win_to_posix(DWORD winerr)
 #include <shellapi.h>
 
 
@@ -67,7 +66,8 @@ int close_all()
 	p_opened_file_size=0;
 	p_opened_file_handle =0;
 }
-static int err_win_to_posix(DWORD winerr)
+
+int err_win_to_posix(DWORD winerr)
 {
 	int error = ENOSYS;
 	switch(winerr) {
@@ -392,12 +392,23 @@ FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
 	return freopen(filename, otype, stream);
 }
 
+#undef fopen
+FILE *mingw_fopen (const char *filename, const char *otype)
+{
+	if (!strcmp(filename, "/dev/null"))
+		filename = "nul";
+	return fopen(filename, otype);
+}
 /*
  * The unit of FILETIME is 100-nanoseconds since January 1, 1601, UTC.
  * Returns the 100-nanoseconds ("hekto nanoseconds") since the epoch.
  */
 static inline long long filetime_to_hnsec(const FILETIME *ft)
-
+{
+	long long winTime = ((long long)ft->dwHighDateTime << 32) + ft->dwLowDateTime;
+	/* Windows to Unix Epoch conversion */
+	return winTime - 116444736000000000LL;
+}
 #undef close
 int mingw_close(int fileHandle)
 {
@@ -405,13 +416,6 @@ int mingw_close(int fileHandle)
 		remove_handle(fileHandle);
 
 	return close(fileHandle);
-}
-
-static inline time_t filetime_to_time_t(const FILETIME *ft)
-{
-	long long winTime = ((long long)ft->dwHighDateTime << 32) + ft->dwLowDateTime;
-	/* Windows to Unix Epoch conversion */
-	return winTime - 116444736000000000LL;
 }
 
 static inline time_t filetime_to_time_t(const FILETIME *ft)

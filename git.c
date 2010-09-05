@@ -424,7 +424,6 @@ static void handle_internal_command(int argc, const char **argv)
 		{ "show-ref", cmd_show_ref, RUN_SETUP },
 		{ "stage", cmd_add, RUN_SETUP | NEED_WORK_TREE },
 		{ "status", cmd_status, RUN_SETUP | NEED_WORK_TREE },
-		{ "statusex", statusex_buildin, RUN_SETUP | NEED_WORK_TREE },
 		{ "stripspace", cmd_stripspace },
 		{ "symbolic-ref", cmd_symbolic_ref, RUN_SETUP },
 		{ "tag", cmd_tag, RUN_SETUP },
