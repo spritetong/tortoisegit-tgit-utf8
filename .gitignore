@@ -213,6 +213,7 @@
 /tags
 /TAGS
 /cscope*
+*.aps
 *.obj
 *.lib
 *.sln
@@ -222,5 +223,6 @@
 *.user
 *.idb
 *.pdb
-/Debug/
-/Release/
+Debug/
+Release/
+Release64/
