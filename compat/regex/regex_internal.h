@@ -21,6 +21,9 @@
 #ifndef _REGEX_INTERNAL_H
 #define _REGEX_INTERNAL_H 1
 
+#define GAWK
+#define NO_MBSUPPORT
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>

@@ -118,7 +118,6 @@
 #endif
 #ifndef __MINGW32__
 #include <sys/wait.h>
-#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <termios.h>

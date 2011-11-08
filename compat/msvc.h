@@ -1,6 +1,8 @@
 #ifndef __MSVC__HEAD
 #define __MSVC__HEAD
 
+#include <errno.h>
+
 #include <direct.h>
 #include <process.h>
 #include <malloc.h>
@@ -71,16 +73,17 @@ int mingw_fstat(int fd, struct stat *buf);
 
 /*Git runtime infomation*/
 #define ETC_GITCONFIG "%HOME%"
+#define ETC_GITATTRIBUTES "etc\\gitattributes"
 #define SHA1_HEADER "block-sha1\\sha1.h"
 #define GIT_EXEC_PATH "bin"
-#define GIT_VERSION "1.7.2.3"
-#define GIT_VERSION_VER 1,7,2,3
-#define GIT_VERSION_STRVER "1, 7, 2, 3\0"
+#define GIT_VERSION "1.7.7.2"
+#define GIT_VERSION_VER 1,7,7,2
+#define GIT_VERSION_STRVER "1, 7, 7, 2\0"
 #define BINDIR "bin"
 #define PREFIX "."
 #define GIT_MAN_PATH "man"
 #define GIT_INFO_PATH "info"
 #define GIT_HTML_PATH "html"
 #define DEFAULT_GIT_TEMPLATE_DIR "templates"
-#define GIT_USER_AGENT "git/1.7.2.3"
+#define GIT_HTTP_USER_AGENT "git/1.7.7.2"
 #endif
