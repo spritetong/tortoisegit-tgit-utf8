@@ -47,7 +47,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;.\;..\..\..\..\libcurl\include"
+				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;..\..\..\compat\win32;.\;..\..\..\..\libcurl\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_STRING_H;USE_WIN32_MMAP"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -114,7 +114,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;.\;..\..\..\..\libcurl\include"
+				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;..\..\..\compat\win32;.\;..\..\..\..\libcurl\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_STRING_H;USE_WIN32_MMAP;WIN64"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -180,7 +180,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;.\;..\..\..\..\libcurl\include"
+				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;..\..\..\compat\win32;.\;..\..\..\..\libcurl\include"
 				PreprocessorDefinitions="WIN32;_LIB;HAVE_STRING_H;USE_WIN32_MMAP"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
@@ -247,7 +247,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;.\;..\..\..\..\libcurl\include"
+				AdditionalIncludeDirectories="..\..\..;..\..\..\..\zlib;..\..;..\;..\include;..\..\..\compat;..\..\..\compat\fnmatch;..\..\..\compat\regex;..\..\..\compat\win32;.\;..\..\..\..\libcurl\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_STRING_H;USE_WIN32_MMAP;WIN64"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -313,6 +313,10 @@
 			>
 			<File
 				RelativePath="..\..\..\archive.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\argv-array.h"
 				>
 			</File>
 			<File
@@ -412,6 +416,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\kwset.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\levenshtein.h"
 				>
 			</File>
@@ -433,6 +441,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\merge-recursive.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\notes-merge.h"
 				>
 			</File>
 			<File
@@ -508,6 +520,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\sha1-array.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\sha1-lookup.h"
 				>
 			</File>
@@ -525,6 +541,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\strbuf.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\streaming.h"
 				>
 			</File>
 			<File
@@ -598,6 +618,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\win32\dirent.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\compat\fnmatch\fnmatch.c"
 				>
 			</File>
@@ -619,6 +643,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\compat\mkdtemp.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\obstack.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\obstack.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\win32\sys\poll.c"
 				>
 			</File>
 			<File
@@ -735,6 +771,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\archive.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\argv-array.c"
 				>
 			</File>
 			<File
@@ -902,6 +942,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\kwset.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\levenshtein.c"
 				>
 			</File>
@@ -946,6 +990,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\notes-merge.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\notes.c"
 				>
 			</File>
@@ -971,6 +1019,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\pager.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\parse-options-cb.c"
 				>
 			</File>
 			<File
@@ -1058,6 +1110,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\sha1-array.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\sha1-lookup.c"
 				>
 			</File>
@@ -1087,6 +1143,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\strbuf.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\streaming.c"
 				>
 			</File>
 			<File
@@ -1177,6 +1237,10 @@
 				RelativePath="..\..\..\xdiff-interface.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\zlib.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="xdiff"
@@ -1199,6 +1263,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\xdiff\xemit.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\xdiff\xhistogram.c"
 				>
 			</File>
 			<File
@@ -1237,10 +1305,6 @@
 				RelativePath="..\..\..\xdiff\xutils.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="igit"
-			>
 		</Filter>
 		<Filter
 			Name="BuildIn"
@@ -1979,6 +2043,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\builtin\reflog.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\builtin\remote-ext.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\builtin\remote-fd.c"
 				>
 			</File>
 			<File

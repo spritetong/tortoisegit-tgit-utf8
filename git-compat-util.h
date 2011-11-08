@@ -123,7 +123,6 @@
 #include "compat/msvc.h"
 #else
 #include <sys/wait.h>
-#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <termios.h>
