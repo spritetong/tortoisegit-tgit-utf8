@@ -113,10 +113,8 @@ static inline int fcntl(int fd, int cmd, ...)
  * simple adaptors
  */
 
-static inline int mingw_mkdir(const char *path, int mode)
-{
-	return mkdir(path);
-}
+/* For UTF-8. Chanaged by Sprite Tong, 12/1/2011. */
+int mingw_mkdir(const char *path, int mode);
 #define mkdir mingw_mkdir
 
 #define WNOHANG 1
@@ -167,6 +165,23 @@ int link(const char *oldpath, const char *newpath);
 /*
  * replacements of existing functions
  */
+
+/* For UTF-8. Added by Sprite Tong, 12/1/2011. */
+int mingw_putenv(const char *envstring);
+#undef  putenv
+#define putenv  mingw_putenv
+char **mingw_environ(void);
+#undef  environ
+#define environ mingw_environ()
+int mingw_chmod(const char *filename, int pmode);
+#undef  chmod
+#define chmod   mingw_chmod
+int mingw_access(const char *filename, int pmode);
+#undef  access
+#define access  mingw_access
+int mingw_chdir(const char *path);
+#undef  chdir
+#define chdir   mingw_chdir
 
 int mingw_unlink(const char *pathname);
 #define unlink mingw_unlink

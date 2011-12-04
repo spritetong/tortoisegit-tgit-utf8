@@ -282,7 +282,9 @@ static int ask_yes_no_if_possible(const char *format, ...)
 	}
 }
 
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef unlink
+#endif
 int mingw_unlink(const char *pathname)
 {
 	int ret, tries = 0;
@@ -333,7 +335,9 @@ static int is_dir_empty(const char *path)
 	return 0;
 }
 
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef rmdir
+#endif
 int mingw_rmdir(const char *pathname)
 {
 	int ret, tries = 0;
@@ -362,7 +366,17 @@ int mingw_rmdir(const char *pathname)
 	return ret;
 }
 
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
+#undef mkdir
+#endif
+int mingw_mkdir(const char *path, int mode)
+{
+	return mkdir(path);
+}
+
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef open
+#endif
 int mingw_open (const char *filename, int oflags, ...)
 {
 	va_list args;
@@ -407,15 +421,9 @@ ssize_t mingw_write(int fd, const void *buf, size_t count)
 	return write(fd, buf, min(count, 31 * 1024 * 1024));
 }
 
-#undef freopen
-FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
-{
-	if (filename && !strcmp(filename, "/dev/null"))
-		filename = "nul";
-	return freopen(filename, otype, stream);
-}
-
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef fopen
+#endif
 FILE *mingw_fopen (const char *filename, const char *otype)
 {
 	FILE *file;
@@ -427,6 +435,14 @@ FILE *mingw_fopen (const char *filename, const char *otype)
 		add_handle((long long)file, OPEN_FILE);
 
 	return file;
+}
+
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
+#undef freopen
+#endif
+FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
+{
+	return freopen(filename, otype, stream);
 }
 
 #undef fclose
@@ -694,7 +710,9 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 	return result;
 }
 
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef getcwd
+#endif
 char *mingw_getcwd(char *pointer, int len)
 {
 	int i;
@@ -1223,7 +1241,9 @@ char **make_augmented_environ(const char *const *vars)
 	return env;
 }
 
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef getenv
+#endif
 
 /*
  * The system's getenv looks up the name in a case-insensitive manner.
@@ -1538,7 +1558,9 @@ int mingw_accept(int sockfd1, struct sockaddr *sa, socklen_t *sz)
 	return sockfd2;
 }
 
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef rename
+#endif
 int mingw_rename(const char *pold, const char *pnew)
 {
 	DWORD attrs, gle;
