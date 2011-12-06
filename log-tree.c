@@ -669,10 +669,8 @@ int log_tree_commit(struct rev_info *opt, struct commit *commit)
 	shown = log_tree_diff(opt, commit, &log);
 	if (!shown && opt->loginfo && opt->always_show_header) {
 		log.parent = NULL;
-		show_log(opt);
 		shown = 1;
 	}
 	opt->loginfo = NULL;
-	maybe_flush_or_die(stdout, "stdout");
 	return shown;
 }
