@@ -1,3 +1,6 @@
+/* For UTF-8, added by Sprite Tong, 12/1/2011. */
+#define __XUTF8_INIT__
+
 #include <cache.h>
 #include "../git-compat-util.h"
 #include "win32.h"
@@ -422,6 +425,16 @@ ssize_t mingw_write(int fd, const void *buf, size_t count)
 }
 
 #ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
+#undef freopen
+#endif
+FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
+{
+	if (filename && !strcmp(filename, "/dev/null"))
+		filename = "nul";
+	return freopen(filename, otype, stream);
+}
+
+#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
 #undef fopen
 #endif
 FILE *mingw_fopen (const char *filename, const char *otype)
@@ -435,14 +448,6 @@ FILE *mingw_fopen (const char *filename, const char *otype)
 		add_handle((long long)file, OPEN_FILE);
 
 	return file;
-}
-
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef freopen
-#endif
-FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
-{
-	return freopen(filename, otype, stream);
 }
 
 #undef fclose
@@ -533,7 +538,7 @@ static int do_lstat(int follow, const char *file_name, struct stat *buf)
 static int do_stat_internal(int follow, const char *file_name, struct stat *buf)
 {
 	int namelen;
-	static char alt_name[PATH_MAX];
+	char alt_name[PATH_MAX];
 
 	if (!do_lstat(follow, file_name, buf))
 		return 0;
@@ -786,7 +791,7 @@ static const char *quote_arg(const char *arg)
 
 static const char *parse_interpreter(const char *cmd)
 {
-	static char buf[100];
+	char buf[100]; /* Remove "static". Changed by Sprite Tong, 12/1/2011. */
 	char *p, *opt;
 	int n, fd;
 
