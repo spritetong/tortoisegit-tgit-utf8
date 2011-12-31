@@ -1302,7 +1302,11 @@ int xutf8_chdir(const char *path)
 char *xutf8_mktemp(char *stemplate)
 {
 	wchar_t wstr1[_XUTF8_MAXWPATH];
+#ifdef _MSC_VER
 	if (_wmktemp_s(_xutf82w(stemplate, wstr1), _XUTF8_MAXWPATH) != 0)
+#else
+	if (_wmktemp(_xutf82w(stemplate, wstr1)) == NULL)
+#endif
 		return NULL;
 	_xutf8_w2a(_XUTF8_CODEPAGE, wstr1, stemplate, (int)strlen(stemplate) + 1);
 	return stemplate;
@@ -1311,7 +1315,11 @@ char *xutf8_mktemp(char *stemplate)
 int xutf8_mktemp_s(char *stemplate, size_t size)
 {
 	wchar_t wstr1[_XUTF8_MAXWPATH];
+#ifdef _MSC_VER
 	if (_wmktemp_s(_xutf82w(stemplate, wstr1), _XUTF8_MAXWPATH) != 0)
+#else
+	if (_wmktemp(_xutf82w(stemplate, wstr1)) == NULL)
+#endif
 		return -1;
 	_xutf8_w2a(_XUTF8_CODEPAGE, wstr1, stemplate, size);
 	return 0;
