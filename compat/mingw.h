@@ -1,6 +1,13 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <io.h> /* For UTF-8. Added by Sprite Tong, 12/5/2011. */
+/* For UTF-8, suppress compiler warnings. Added by Sprite Tong, 12/5/2011. */
+#include <io.h>
+#undef EWOULDBLOCK
+#undef EAFNOSUPPORT
+#undef ECONNABORTED
+#undef freeaddrinfo
+#undef getaddrinfo
+#undef getnameinfo
 
 /*
  * things that are not available in header files

@@ -1,0 +1,1023 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="compat">
+      <UniqueIdentifier>{1826b94f-662a-405c-82fa-c7321f0fa575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="git">
+      <UniqueIdentifier>{8cb9c7b3-5fc3-4ee2-95dd-1de698ae1b5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="xdiff">
+      <UniqueIdentifier>{92b6ea01-271b-47bd-aa68-ae32b741424b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BuildIn">
+      <UniqueIdentifier>{d5f1a814-8c50-4bc6-a8e3-37dd2710fc97}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\msvc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\block-sha1\sha1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\basename.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\win32\dirent.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fnmatch\fnmatch.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fopen.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\memmem.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mkdtemp.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\obstack.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\win32\sys\poll.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pread.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\qsort.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\regex\regex.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\setenv.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\snprintf.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\strcasestr.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\strlcpy.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\strtoumax.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\unsetenv.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\win32mmap.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\winansi.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\abspath.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\advice.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\alias.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\alloc.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\archive-tar.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\archive-zip.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\archive.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\argv-array.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\attr.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\base85.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\bisect.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blob.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\branch.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\bundle.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cache-tree.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\color.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\combine-diff.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\commit.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\config.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\connect.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\convert.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\copy.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\csum-file.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ctype.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\date.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\decorate.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diff-delta.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diff-lib.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diff-no-index.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diff.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diffcore-break.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diffcore-delta.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diffcore-order.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diffcore-pickaxe.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\diffcore-rename.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\dir.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\editor.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\entry.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\environment.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\exec_cmd.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\fsck.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\graph.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\grep.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\hash.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\help.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\hex.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\http-walker.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\http.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ident.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\kwset.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\levenshtein.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\list-objects.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ll-merge.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lockfile.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\log-tree.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\mailmap.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\match-trees.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\merge-file.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\merge-recursive.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\name-hash.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\notes-cache.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\notes-merge.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\notes.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\object.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\pack-check.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\pack-refs.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\pack-revindex.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\pack-write.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\pager.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\parse-options-cb.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\parse-options.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\patch-delta.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\patch-ids.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\path.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\pkt-line.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\preload-index.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\pretty.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\progress.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\quote.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\reachable.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\read-cache.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\reflog-walk.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\refs.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\remote.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\replace_object.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\rerere.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\resolve-undo.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\revision.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\run-command.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\server-info.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\setup.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sha1-array.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sha1-lookup.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sha1_file.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sha1_name.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\shallow.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\shortlog.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sideband.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sigchain.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\strbuf.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\streaming.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\string-list.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\submodule.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\symlinks.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\tag.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\trace.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\transport-helper.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\transport.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\tree-diff.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\tree-walk.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\tree.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\unpack-trees.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\upload-pack.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\url.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\usage.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\userdiff.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\utf8.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\walker.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\wrapper.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\write_or_die.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ws.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\wt-status.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff-interface.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\zlib.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff\xdiffi.c">
+      <Filter>xdiff</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff\xemit.c">
+      <Filter>xdiff</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff\xhistogram.c">
+      <Filter>xdiff</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff\xmerge.c">
+      <Filter>xdiff</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff\xpatience.c">
+      <Filter>xdiff</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff\xprepare.c">
+      <Filter>xdiff</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\xdiff\xutils.c">
+      <Filter>xdiff</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\add.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\annotate.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\apply.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\archive.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\bisect--helper.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\blame.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\branch.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\bundle.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\cat-file.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\check-attr.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\check-ref-format.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\checkout-index.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\checkout.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\clean.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\clone.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\commit-tree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\commit.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\config.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\count-objects.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\describe.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\diff-files.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\diff-index.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\diff-tree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\diff.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\fast-export.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\fetch-pack.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\fetch.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\fmt-merge-msg.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\for-each-ref.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\fsck.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\gc.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\grep.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\hash-object.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\help.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\index-pack.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\init-db.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\log.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\ls-files.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\ls-remote.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\ls-tree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\mailinfo.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\mailsplit.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\merge-base.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\merge-file.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\merge-index.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\merge-ours.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\merge-recursive.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\merge-tree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\merge.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\mktag.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\mktree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\mv.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\name-rev.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\notes.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\pack-objects.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\pack-redundant.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\pack-refs.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\patch-id.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\prune-packed.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\prune.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\push.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\read-tree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\receive-pack.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\reflog.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\remote-ext.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\remote-fd.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\remote.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\replace.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\rerere.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\reset.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\rev-list.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\rev-parse.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\revert.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\rm.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\send-pack.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\show-branch.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\show-ref.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\stripspace.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\symbolic-ref.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\tag.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\tar-tree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\unpack-file.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\unpack-objects.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\update-index.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\update-ref.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\update-server-info.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\upload-archive.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\var.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\verify-pack.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\verify-tag.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\write-tree.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\msvc.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\archive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\argv-array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\attr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\branch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\builtin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\bundle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cache-tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\commit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\csum-file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\decorate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\delta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\diff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\diffcore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\dir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\exec_cmd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\fetch-pack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\fsck.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\git-compat-util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\graph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\grep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\help.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\http.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\kwset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\levenshtein.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\list-objects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ll-merge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\log-tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\mailmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\merge-recursive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\notes-merge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\notes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\pack-refs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\pack-revindex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\pack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\parse-options.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\patch-ids.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\pkt-line.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\progress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\quote.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\reachable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\reflog-walk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\refs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\remote.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\rerere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\revision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\run-command.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\send-pack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\sha1-array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\sha1-lookup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\shortlog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\sideband.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\sigchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\strbuf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\streaming.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\string-list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\tag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\tar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\thread-utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\transport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\tree-walk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\unpack-trees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\userdiff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\utf8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\walker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\wt-status.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff-interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cygwin.h">
+      <Filter>compat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\fnmatch\fnmatch.h">
+      <Filter>compat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\mingw.h">
+      <Filter>compat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\obstack.h">
+      <Filter>compat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\regex\regex.h">
+      <Filter>compat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\win32.h">
+      <Filter>compat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xdiff.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xdiffi.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xemit.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xinclude.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xmacros.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xprepare.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xtypes.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\xdiff\xutils.h">
+      <Filter>xdiff</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
