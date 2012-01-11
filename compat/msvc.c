@@ -1,4 +1,4 @@
-/* For UTF-8, added by Sprite Tong, 12/1/2011. */
+/* For UTF-8. Added by Sprite Tong, 12/1/2011. */
 #define __XUTF8_INIT__
 
 #include "../git-compat-util.h"
