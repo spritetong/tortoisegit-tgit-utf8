@@ -724,6 +724,7 @@ void free_pack_by_name(const char *pack_name)
 }
 
 static struct packed_git *last_found = (void *)1;
+static int prepare_packed_git_run_once = 0;
 void free_all_pack()
 {
 	struct packed_git *p, **pp = &packed_git;
@@ -731,22 +732,17 @@ void free_all_pack()
 
 	while (*pp) {
 		p = *pp;
-		if (p != 0) {
-			clear_delta_base_cache();
-			close_pack_windows(p);
-			if (p->pack_fd != -1)
-				close(p->pack_fd);
-			if (p->index_data)
-				munmap((void *)p->index_data, p->index_size);
-			free(p->bad_object_sha1);
-			*pp = p->next;
-			free(p);
-			return;
+		close_pack_windows(p);
+		if (p->pack_fd != -1) {
+			close(p->pack_fd);
+			pack_open_fds--;
 		}
-		pp = &p->next;
+		close_pack_index(p);
+		free(p->bad_object_sha1);
+		*pp = p->next;
+		free(p);
 	}
-
-
+	prepare_packed_git_run_once = 0;
 }
 
 /*
@@ -1115,7 +1111,6 @@ static void rearrange_packed_git(void)
 	free(ary);
 }
 
-static int prepare_packed_git_run_once = 0;
 void prepare_packed_git(void)
 {
 	struct alternate_object_database *alt;
