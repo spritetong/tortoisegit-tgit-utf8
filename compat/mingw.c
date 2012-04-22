@@ -368,6 +368,7 @@ int mingw_open (const char *filename, int oflags, ...)
 	va_list args;
 	unsigned mode;
 	int fd;
+	wchar_t wfilename[MAX_PATH];
 
 	va_start(args, oflags);
 	mode = va_arg(args, int);
@@ -376,10 +377,12 @@ int mingw_open (const char *filename, int oflags, ...)
 	if (filename && !strcmp(filename, "/dev/null"))
 		filename = "nul";
 
-	fd = open(filename, oflags, mode);
+	if (xutftowcs_path(wfilename, filename) < 0)
+		return -1;
+	fd = _wopen(wfilename, oflags, mode);
 
 	if (fd < 0 && (oflags & O_CREAT) && errno == EACCES) {
-		DWORD attrs = GetFileAttributes(filename);
+		DWORD attrs = GetFileAttributesW(wfilename);
 		if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
 			errno = EISDIR;
 	}
@@ -410,18 +413,29 @@ ssize_t mingw_write(int fd, const void *buf, size_t count)
 #undef freopen
 FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
 {
+	int hide = 0;
+	FILE *file;
+	wchar_t wfilename[MAX_PATH], wotype[4];
 	if (filename && !strcmp(filename, "/dev/null"))
 		filename = "nul";
-	return freopen(filename, otype, stream);
+	if (xutftowcs_path(wfilename, filename) < 0 ||
+		xutftowcs(wotype, otype, ARRAY_SIZE(wotype)) < 0)
+		return NULL;
+	file = _wfreopen(wfilename, wotype, stream);
+	return file;
 }
 
 #undef fopen
 FILE *mingw_fopen (const char *filename, const char *otype)
 {
 	FILE *file;
-	if (!strcmp(filename, "/dev/null"))
+	wchar_t wfilename[MAX_PATH], wotype[4];
+	if (filename && !strcmp(filename, "/dev/null"))
 		filename = "nul";
-	file = fopen(filename, otype);
+	if (xutftowcs_path(wfilename, filename) < 0 ||
+		xutftowcs(wotype, otype, ARRAY_SIZE(wotype)) < 0)
+		return NULL;
+	file = _wfopen(wfilename, wotype);
 
 	if(file)
 		add_handle((long long)file, OPEN_FILE);
@@ -468,10 +482,12 @@ static inline time_t filetime_to_time_t(const FILETIME *ft)
  */
 static int do_lstat(int follow, const char *file_name, struct stat *buf)
 {
-	int err;
 	WIN32_FILE_ATTRIBUTE_DATA fdata;
+	wchar_t wfilename[MAX_PATH];
+	if (xutftowcs_path(wfilename, file_name) < 0)
+		return -1;
 
-	if (!(err = get_file_attr(file_name, &fdata))) {
+	if (GetFileAttributesExW(wfilename, GetFileExInfoStandard, &fdata)) {
 		buf->st_ino = 0;
 		buf->st_gid = 0;
 		buf->st_uid = 0;
@@ -484,8 +500,8 @@ static int do_lstat(int follow, const char *file_name, struct stat *buf)
 		buf->st_mtime = filetime_to_time_t(&(fdata.ftLastWriteTime));
 		buf->st_ctime = filetime_to_time_t(&(fdata.ftCreationTime));
 		if (fdata.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-			WIN32_FIND_DATAA findbuf;
-			HANDLE handle = FindFirstFileA(file_name, &findbuf);
+			WIN32_FIND_DATAW findbuf;
+			HANDLE handle = FindFirstFileW(wfilename, &findbuf);
 			if (handle != INVALID_HANDLE_VALUE) {
 				if ((findbuf.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
 						(findbuf.dwReserved0 == IO_REPARSE_TAG_SYMLINK)) {
@@ -504,7 +520,23 @@ static int do_lstat(int follow, const char *file_name, struct stat *buf)
 		}
 		return 0;
 	}
-	errno = err;
+	switch (GetLastError()) {
+	case ERROR_ACCESS_DENIED:
+	case ERROR_SHARING_VIOLATION:
+	case ERROR_LOCK_VIOLATION:
+	case ERROR_SHARING_BUFFER_EXCEEDED:
+		errno = EACCES;
+		break;
+	case ERROR_BUFFER_OVERFLOW:
+		errno = ENAMETOOLONG;
+		break;
+	case ERROR_NOT_ENOUGH_MEMORY:
+		errno = ENOMEM;
+		break;
+	default:
+		errno = ENOENT;
+		break;
+	}
 	return -1;
 }
 
@@ -1871,5 +1903,90 @@ pid_t waitpid(pid_t pid, int *status, int options)
 	CloseHandle(h);
 
 	errno = EINVAL;
+	return -1;
+}
+
+int xutftowcsn(wchar_t *wcs, const char *utfs, size_t wcslen, int utflen)
+{
+	int upos = 0, wpos = 0;
+	const unsigned char *utf = (const unsigned char*) utfs;
+	if (!utf || !wcs || wcslen < 1) {
+		errno = EINVAL;
+		return -1;
+	}
+	/* reserve space for \0 */
+	wcslen--;
+	if (utflen < 0)
+		utflen = INT_MAX;
+
+	while (upos < utflen) {
+		int c = utf[upos++] & 0xff;
+		if (utflen == INT_MAX && c == 0)
+			break;
+
+		if (wpos >= wcslen) {
+			wcs[wpos] = 0;
+			errno = ERANGE;
+			return -1;
+		}
+
+		if (c < 0x80) {
+			/* ASCII */
+			wcs[wpos++] = c;
+		} else if (c >= 0xc2 && c < 0xe0 && upos < utflen &&
+				(utf[upos] & 0xc0) == 0x80) {
+			/* 2-byte utf-8 */
+			c = ((c & 0x1f) << 6);
+			c |= (utf[upos++] & 0x3f);
+			wcs[wpos++] = c;
+		} else if (c >= 0xe0 && c < 0xf0 && upos + 1 < utflen &&
+				!(c == 0xe0 && utf[upos] < 0xa0) && /* over-long encoding */
+				(utf[upos] & 0xc0) == 0x80 &&
+				(utf[upos + 1] & 0xc0) == 0x80) {
+			/* 3-byte utf-8 */
+			c = ((c & 0x0f) << 12);
+			c |= ((utf[upos++] & 0x3f) << 6);
+			c |= (utf[upos++] & 0x3f);
+			wcs[wpos++] = c;
+		} else if (c >= 0xf0 && c < 0xf5 && upos + 2 < utflen &&
+				wpos + 1 < wcslen &&
+				!(c == 0xf0 && utf[upos] < 0x90) && /* over-long encoding */
+				!(c == 0xf4 && utf[upos] >= 0x90) && /* > \u10ffff */
+				(utf[upos] & 0xc0) == 0x80 &&
+				(utf[upos + 1] & 0xc0) == 0x80 &&
+				(utf[upos + 2] & 0xc0) == 0x80) {
+			/* 4-byte utf-8: convert to \ud8xx \udcxx surrogate pair */
+			c = ((c & 0x07) << 18);
+			c |= ((utf[upos++] & 0x3f) << 12);
+			c |= ((utf[upos++] & 0x3f) << 6);
+			c |= (utf[upos++] & 0x3f);
+			c -= 0x10000;
+			wcs[wpos++] = 0xd800 | (c >> 10);
+			wcs[wpos++] = 0xdc00 | (c & 0x3ff);
+		} else if (c >= 0xa0) {
+			/* invalid utf-8 byte, printable unicode char: convert 1:1 */
+			wcs[wpos++] = c;
+		} else {
+			/* invalid utf-8 byte, non-printable unicode: convert to hex */
+			static const char *hex = "0123456789abcdef";
+			wcs[wpos++] = hex[c >> 4];
+			if (wpos < wcslen)
+				wcs[wpos++] = hex[c & 0x0f];
+		}
+	}
+	wcs[wpos] = 0;
+	return wpos;
+}
+
+int xwcstoutf(char *utf, const wchar_t *wcs, size_t utflen)
+{
+	if (!wcs || !utf || utflen < 1) {
+		errno = EINVAL;
+		return -1;
+	}
+	utflen = WideCharToMultiByte(CP_UTF8, 0, wcs, -1, utf, utflen, NULL, NULL);
+	if (utflen)
+		return utflen - 1;
+	errno = ERANGE;
 	return -1;
 }
