@@ -22,7 +22,7 @@ static struct open_data *p_opened_file_handle;
 static int p_opened_file_size;
 static int p_alloc_size;
 
-int add_handle(long long x, int flag)
+void add_handle(long long x, int flag)
 {
 	int i=0;
 	struct open_data handle;
@@ -35,15 +35,14 @@ int add_handle(long long x, int flag)
 	for(i=0;i<p_opened_file_size;i++)
 	{
 		if(p_opened_file_handle[i].data == handle.data && p_opened_file_handle[i].flag == handle.flag )
-			return 0;
+			return;
 	}
 
 	ALLOC_GROW(p_opened_file_handle, p_opened_file_size+1, p_alloc_size);
 	p_opened_file_handle[p_opened_file_size++] = handle;
-
 }
 
-int remove_handle(long long x, int flag)
+void remove_handle(long long x, int flag)
 {
 	int i=0;
 	struct open_data handle;
@@ -51,7 +50,7 @@ int remove_handle(long long x, int flag)
 	handle.flag = flag;
 
 	if(p_opened_file_handle == NULL)
-		return 0;
+		return;
 
 	for(i=0;i<p_opened_file_size;i++)
 	{
@@ -59,21 +58,19 @@ int remove_handle(long long x, int flag)
 		{
 			memcpy(p_opened_file_handle+i, p_opened_file_handle+i+1, sizeof(int)*(p_opened_file_size-i-1));
 			p_opened_file_size--;
-			return 0;
+			return;
 		}
 	}
-	return 0;
-
 }
 
 #undef close
 #undef fclose
 
-int close_all()
+void close_all()
 {
 	int i=0;
 	if(p_opened_file_handle== NULL)
-		return 0;
+		return;
 
 	for( i=0;i< p_opened_file_size; i++)
 	{
