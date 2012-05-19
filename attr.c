@@ -485,7 +485,18 @@ static const char *git_etc_gitattributes(void)
 {
 	static const char *system_wide;
 	if (!system_wide)
-		system_wide = system_path(ETC_GITATTRIBUTES);
+	{
+		char lszValue[255];
+		HKEY hKey;
+		DWORD dwType=REG_SZ;
+		DWORD dwSize=255;
+		if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\TortoiseGit", NULL, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
+		{
+			if (RegQueryValueEx(hKey, TEXT("MSysGit"), NULL, &dwType,(LPBYTE)&lszValue, &dwSize) == ERROR_SUCCESS)
+				system_wide = xstrdup(mkpath("%s/../etc/gitattributes", &lszValue));
+		}
+		RegCloseKey(hKey);
+	}
 	return system_wide;
 }
 
