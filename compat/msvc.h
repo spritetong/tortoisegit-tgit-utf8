@@ -72,8 +72,6 @@ int mingw_fstat(int fd, struct stat *buf);
 #define	NO_PTHREADS 
 
 /*Git runtime infomation*/
-#define ETC_GITCONFIG "%HOME%"
-#define ETC_GITATTRIBUTES "etc\\gitattributes"
 #define SHA1_HEADER "block-sha1\\sha1.h"
 #define GIT_EXEC_PATH "bin"
 #define GIT_VERSION "1.7.7.2"
