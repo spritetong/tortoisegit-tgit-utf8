@@ -121,12 +121,6 @@ static inline int fcntl(int fd, int cmd, ...)
  * simple adaptors
  */
 
-static inline int mingw_mkdir(const char *path, int mode)
-{
-	return mkdir(path);
-}
-#define mkdir mingw_mkdir
-
 #define WNOHANG 1
 pid_t waitpid(pid_t pid, int *status, int options);
 
@@ -182,6 +176,9 @@ int mingw_unlink(const char *pathname);
 int mingw_rmdir(const char *path);
 #define rmdir mingw_rmdir
 
+int mingw_mkdir(const char *path, int mode);
+#define mkdir mingw_mkdir
+
 int mingw_open (const char *filename, int oflags, ...);
 #define open mingw_open
 
@@ -199,6 +196,16 @@ FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream);
 
 int mingw_close(int fileHandle);
 #define close mingw_close
+
+int mingw_access(const char *filename, int mode);
+#undef access
+#define access mingw_access
+
+int mingw_chdir(const char *dirname);
+#define chdir mingw_chdir
+
+int mingw_chmod(const char *filename, int mode);
+#define chmod mingw_chmod
 
 char *mingw_getcwd(char *pointer, int len);
 #define getcwd mingw_getcwd

@@ -279,14 +279,16 @@ static int ask_yes_no_if_possible(const char *format, ...)
 	}
 }
 
-#undef unlink
 int mingw_unlink(const char *pathname)
 {
 	int ret, tries = 0;
+	wchar_t wpathname[MAX_PATH];
+	if (xutftowcs_path(wpathname, pathname) < 0)
+		return -1;
 
 	/* read-only files cannot be removed */
-	chmod(pathname, 0666);
-	while ((ret = unlink(pathname)) == -1 && tries < ARRAY_SIZE(delay)) {
+	_wchmod(wpathname, 0666);
+	while ((ret = _wunlink(wpathname)) == -1 && tries < ARRAY_SIZE(delay)) {
 		if (!is_file_in_use_error(GetLastError()))
 			break;
 		/*
@@ -302,43 +304,43 @@ int mingw_unlink(const char *pathname)
 	while (ret == -1 && is_file_in_use_error(GetLastError()) &&
 	       ask_yes_no_if_possible("Unlink of file '%s' failed. "
 			"Should I try again?", pathname))
-	       ret = unlink(pathname);
+	       ret = _wunlink(wpathname);
 	return ret;
 }
 
-static int is_dir_empty(const char *path)
+static int is_dir_empty(const wchar_t *wpath)
 {
-	struct strbuf buf = STRBUF_INIT;
-	WIN32_FIND_DATAA findbuf;
+	WIN32_FIND_DATAW findbuf;
 	HANDLE handle;
-
-	strbuf_addf(&buf, "%s\\*", path);
-	handle = FindFirstFileA(buf.buf, &findbuf);
-	if (handle == INVALID_HANDLE_VALUE) {
-		strbuf_release(&buf);
+	wchar_t wbuf[MAX_PATH + 2];
+	wcscpy(wbuf, wpath);
+	wcscat(wbuf, L"\\*");
+	handle = FindFirstFileW(wbuf, &findbuf);
+	if (handle == INVALID_HANDLE_VALUE)
 		return GetLastError() == ERROR_NO_MORE_FILES;
-	}
 
-	while (!strcmp(findbuf.cFileName, ".") ||
-			!strcmp(findbuf.cFileName, ".."))
-		if (!FindNextFile(handle, &findbuf)) {
-			strbuf_release(&buf);
-			return GetLastError() == ERROR_NO_MORE_FILES;
+	while (!wcscmp(findbuf.cFileName, L".") ||
+			!wcscmp(findbuf.cFileName, L".."))
+		if (!FindNextFileW(handle, &findbuf)) {
+			DWORD err = GetLastError();
+			FindClose(handle);
+			return err == ERROR_NO_MORE_FILES;
 		}
 	FindClose(handle);
-	strbuf_release(&buf);
 	return 0;
 }
 
-#undef rmdir
 int mingw_rmdir(const char *pathname)
 {
 	int ret, tries = 0;
+	wchar_t wpathname[MAX_PATH];
+	if (xutftowcs_path(wpathname, pathname) < 0)
+		return -1;
 
-	while ((ret = rmdir(pathname)) == -1 && tries < ARRAY_SIZE(delay)) {
+	while ((ret = _wrmdir(wpathname)) == -1 && tries < ARRAY_SIZE(delay)) {
 		if (!is_file_in_use_error(GetLastError()))
 			break;
-		if (!is_dir_empty(pathname)) {
+		if (!is_dir_empty(wpathname)) {
 			errno = ENOTEMPTY;
 			break;
 		}
@@ -355,12 +357,20 @@ int mingw_rmdir(const char *pathname)
 	while (ret == -1 && is_file_in_use_error(GetLastError()) &&
 	       ask_yes_no_if_possible("Deletion of directory '%s' failed. "
 			"Should I try again?", pathname))
-	       ret = rmdir(pathname);
+	       ret = _wrmdir(wpathname);
 	return ret;
 }
 
-#undef open
-int mingw_open (const char *filename, int oflags, ...)
+int mingw_mkdir(const char *path, int mode)
+{
+	int ret;
+	wchar_t wpath[MAX_PATH];
+	if (xutftowcs_path(wpath, path) < 0)
+		return -1;
+	return _wmkdir(wpath);
+}
+
+int mingw_open(const char *filename, int oflags, ...)
 {
 	va_list args;
 	unsigned mode;
@@ -407,8 +417,7 @@ ssize_t mingw_write(int fd, const void *buf, size_t count)
 	return write(fd, buf, min(count, 31 * 1024 * 1024));
 }
 
-#undef freopen
-FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
+FILE *mingw_freopen(const char *filename, const char *otype, FILE *stream)
 {
 	int hide = 0;
 	FILE *file;
@@ -422,8 +431,7 @@ FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
 	return file;
 }
 
-#undef fopen
-FILE *mingw_fopen (const char *filename, const char *otype)
+FILE *mingw_fopen(const char *filename, const char *otype)
 {
 	FILE *file;
 	wchar_t wfilename[MAX_PATH], wotype[4];
@@ -441,7 +449,7 @@ FILE *mingw_fopen (const char *filename, const char *otype)
 }
 
 #undef fclose
-int mingw_fclose (FILE * stream)
+int mingw_fclose(FILE * stream)
 {
 	remove_handle((long long)stream, OPEN_FILE);
 	return fclose(stream);
@@ -723,17 +731,43 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 	return result;
 }
 
-#undef getcwd
 char *mingw_getcwd(char *pointer, int len)
 {
 	int i;
-	char *ret = getcwd(pointer, len);
-	if (!ret)
-		return ret;
+	wchar_t wpointer[MAX_PATH];
+	if (!_wgetcwd(wpointer, ARRAY_SIZE(wpointer)))
+		return NULL;
+	if (xwcstoutf(pointer, wpointer, len) < 0)
+		return NULL;
 	for (i = 0; pointer[i]; i++)
 		if (pointer[i] == '\\')
 			pointer[i] = '/';
-	return ret;
+	return pointer;
+}
+
+int mingw_access(const char *filename, int mode)
+{
+	wchar_t wfilename[MAX_PATH];
+	if (xutftowcs_path(wfilename, filename) < 0)
+		return -1;
+	/* X_OK is not supported by the MSVCRT version */
+	return _waccess(wfilename, mode & ~X_OK);
+}
+
+int mingw_chdir(const char *dirname)
+{
+	wchar_t wdirname[MAX_PATH];
+	if (xutftowcs_path(wdirname, dirname) < 0)
+		return -1;
+	return _wchdir(wdirname);
+}
+
+int mingw_chmod(const char *filename, int mode)
+{
+	wchar_t wfilename[MAX_PATH];
+	if (xutftowcs_path(wfilename, filename) < 0)
+		return -1;
+	return _wchmod(wfilename, mode);
 }
 
 /*
