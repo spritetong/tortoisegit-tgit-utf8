@@ -209,6 +209,9 @@ int mingw_chmod(const char *filename, int mode);
 char *mingw_getcwd(char *pointer, int len);
 #define getcwd mingw_getcwd
 
+int mingw_rename(const char*, const char*);
+#define rename mingw_rename
+
 char *mingw_getenv(const char *name);
 #define getenv mingw_getenv
 

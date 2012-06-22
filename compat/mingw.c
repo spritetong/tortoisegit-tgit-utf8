@@ -1601,7 +1601,6 @@ int mingw_accept(int sockfd1, struct sockaddr *sa, socklen_t *sz)
 	return sockfd2;
 }
 
-#undef rename
 int mingw_rename(const char *pold, const char *pnew)
 {
 	DWORD attrs, gle;
