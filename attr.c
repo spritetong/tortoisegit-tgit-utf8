@@ -485,14 +485,18 @@ static const char *git_etc_gitattributes(void)
 	static const char *system_wide;
 	if (!system_wide)
 	{
-		char lszValue[255];
+		wchar_t lszValue[MAX_PATH];
 		HKEY hKey;
-		DWORD dwType=REG_SZ;
-		DWORD dwSize=255;
-		if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\TortoiseGit", NULL, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
+		DWORD dwType = REG_SZ;
+		DWORD dwSize = MAX_PATH;
+		if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\TortoiseGit", NULL, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
 		{
-			if (RegQueryValueEx(hKey, TEXT("MSysGit"), NULL, &dwType,(LPBYTE)&lszValue, &dwSize) == ERROR_SUCCESS)
-				system_wide = xstrdup(mkpath("%s/../etc/gitattributes", &lszValue));
+			if (RegQueryValueExW(hKey, L"MSysGit", NULL, &dwType,(LPBYTE)&lszValue, &dwSize) == ERROR_SUCCESS)
+			{
+				char pointer[MAX_PATH];
+				xwcstoutf(pointer, lszValue, MAX_PATH);
+				system_wide = xstrdup(mkpath("%s/../etc/gitattributes", pointer));
+			}
 		}
 		RegCloseKey(hKey);
 	}
