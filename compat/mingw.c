@@ -1233,12 +1233,25 @@ void free_environ(char **env)
 	free(env);
 }
 
-static int lookup_env(char **env, const char *name, size_t nmln)
+static int lookup_env(wchar_t **env, const wchar_t *name, size_t nmln)
 {
 	int i;
 
 	for (i = 0; env[i]; i++) {
-		if (0 == strncmp(env[i], name, nmln)
+		if (0 == wcsncmp(env[i], name, nmln)
+		    && '=' == env[i][nmln])
+			/* matches */
+			return i;
+	}
+	return -1;
+}
+
+static int lookup_env_icase(wchar_t **env, const wchar_t *name, size_t nmln)
+{
+	int i;
+
+	for (i = 0; env[i]; i++) {
+		if (0 == wcscmp(env[i], name)
 		    && '=' == env[i][nmln])
 			/* matches */
 			return i;
@@ -1286,8 +1299,6 @@ char **make_augmented_environ(const char *const *vars)
 	return env;
 }
 
-#undef getenv
-
 /*
  * The system's getenv looks up the name in a case-insensitive manner.
  * This version tries a case-sensitive lookup and falls back to
@@ -1298,10 +1309,19 @@ char **make_augmented_environ(const char *const *vars)
 static char *getenv_cs(const char *name)
 {
 	size_t len = strlen(name);
-	int i = lookup_env(environ, name, len);
+	wchar_t * wpointer = NULL;
+	wchar_t wname[MAX_PATH];
+	char pointer[MAX_PATH];
+	int i = -1;
+	xutftowcsn(wname, name, MAX_PATH, len);
+	i = lookup_env(_wenviron, wname, len);
 	if (i >= 0)
-		return environ[i] + len + 1;	/* skip past name and '=' */
-	return getenv(name);
+		wpointer = _wenviron[i] + len + 1;	/* skip past name and '=' */
+	if (!wpointer)
+		wpointer= _wgetenv(wname);
+	if (!wpointer || xwcstoutf(pointer, wpointer, MAX_PATH) < 0)
+		return NULL;
+	return xstrdup(pointer);
 }
 
 char *mingw_getenv(const char *name)
@@ -1314,6 +1334,14 @@ char *mingw_getenv(const char *name)
 			result = getenv_cs("TEMP");
 	}
 	return result;
+}
+
+int mingw_putenv(const char *namevalue)
+{
+	wchar_t * wpointer[MAX_PATH + 50];
+	if (xutftowcs(wpointer, namevalue, MAX_PATH + 50) < 0)
+		return -1;
+	return _wputenv(wpointer);
 }
 
 /*
