@@ -215,6 +215,9 @@ int mingw_rename(const char*, const char*);
 
 char *mingw_getenv(const char *name);
 #define getenv mingw_getenv
+int mingw_putenv(const char *namevalue);
+#define putenv mingw_putenv
+#define unsetenv mingw_putenv
 
 int mingw_gethostname(char *host, int namelen);
 #define gethostname mingw_gethostname
