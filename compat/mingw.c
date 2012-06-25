@@ -56,7 +56,9 @@ void remove_handle(long long x, int flag)
 	{
 		if(p_opened_file_handle[i].data == handle.data && p_opened_file_handle[i].flag == handle.flag)
 		{
-			memcpy(p_opened_file_handle+i, p_opened_file_handle+i+1, sizeof(int)*(p_opened_file_size-i-1));
+			if (i != p_opened_file_size - 1)
+				memmove(p_opened_file_handle + i, p_opened_file_handle + i + 1, (p_opened_file_size - i - 1) * sizeof *(p_opened_file_handle));
+
 			p_opened_file_size--;
 			return;
 		}
