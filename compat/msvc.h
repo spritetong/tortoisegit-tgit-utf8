@@ -46,7 +46,6 @@ int mingw_fstat(int fd, struct stat *buf);
 #define	NO_SYMLINK_HEAD
 #define	NO_IPV6
 #define	NO_SETENV
-#define	NO_UNSETENV
 #define	NO_STRCASESTR
 #define	NO_STRLCPY
 #define	NO_MEMMEM

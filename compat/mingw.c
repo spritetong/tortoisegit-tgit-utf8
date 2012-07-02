@@ -1348,8 +1348,24 @@ char *mingw_getenv(const char *name)
 int mingw_putenv(const char *namevalue)
 {
 	wchar_t * wpointer[MAX_PATH + 50];
-	if (xutftowcs(wpointer, namevalue, MAX_PATH + 50) < 0)
-		return -1;
+	if (!strchr(namevalue, '='))
+	{
+		struct strbuf sb = STRBUF_INIT;
+		strbuf_addstr(&sb, namevalue);
+		strbuf_addch(&sb, '=');
+		if (xutftowcs(wpointer, sb.buf, MAX_PATH + 50) < 0)
+		{
+			strbuf_release(&sb);
+			return -1;
+		}
+		strbuf_release(&sb);
+	}
+	else
+	{
+		if (xutftowcs(wpointer, namevalue, MAX_PATH + 50) < 0)
+			return -1;
+	}
+
 	return _wputenv(wpointer);
 }
 
