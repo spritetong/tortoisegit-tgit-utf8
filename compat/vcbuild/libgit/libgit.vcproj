@@ -726,10 +726,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\compat\unsetenv.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\compat\win32.h"
 				>
 			</File>
