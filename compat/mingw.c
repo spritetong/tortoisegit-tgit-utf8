@@ -42,7 +42,7 @@ void add_handle(long long x, int flag)
 	p_opened_file_handle[p_opened_file_size++] = handle;
 }
 
-void remove_handle(long long x, int flag)
+int remove_handle(long long x, int flag)
 {
 	int i=0;
 	struct open_data handle;
@@ -50,7 +50,7 @@ void remove_handle(long long x, int flag)
 	handle.flag = flag;
 
 	if(p_opened_file_handle == NULL)
-		return;
+		return FALSE;
 
 	for(i=0;i<p_opened_file_size;i++)
 	{
@@ -60,9 +60,10 @@ void remove_handle(long long x, int flag)
 				memmove(p_opened_file_handle + i, p_opened_file_handle + i + 1, (p_opened_file_size - i - 1) * sizeof *(p_opened_file_handle));
 
 			p_opened_file_size--;
-			return;
+			return TRUE;
 		}
 	}
+	return FALSE;
 }
 
 #undef close
@@ -470,9 +471,14 @@ static inline long long filetime_to_hnsec(const FILETIME *ft)
 int mingw_close(int fileHandle)
 {
 	if(fileHandle>=0)
-		remove_handle(fileHandle,OPEN_HANDLE);
-
-	return close(fileHandle);
+	{
+		if (remove_handle(fileHandle, OPEN_HANDLE) == TRUE)
+			return close(fileHandle);
+		else
+			return FALSE;
+	}
+	else
+		return close(fileHandle);
 }
 
 static inline time_t filetime_to_time_t(const FILETIME *ft)
