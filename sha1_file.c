@@ -751,6 +751,7 @@ void free_all_pack()
 		free(p);
 	}
 	prepare_packed_git_run_once = 0;
+	last_found_pack = NULL;
 }
 
 /*

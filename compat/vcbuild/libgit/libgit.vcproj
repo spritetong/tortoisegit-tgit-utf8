@@ -336,6 +336,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\bulk-checkin.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\bundle.h"
 				>
 			</File>
@@ -352,7 +356,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\column.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\commit.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\connected.h"
 				>
 			</File>
 			<File
@@ -393,6 +405,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\git-compat-util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\gpg-interface.h"
 				>
 			</File>
 			<File
@@ -441,6 +457,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\merge-recursive.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\mergesort.h"
 				>
 			</File>
 			<File
@@ -520,6 +540,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\sequencer.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\sha1-array.h"
 				>
 			</File>
@@ -585,6 +609,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\utf8.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\varint.h"
 				>
 			</File>
 			<File
@@ -654,7 +682,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\win32\sys\poll.c"
+				RelativePath="..\..\win32\poll.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\win32\poll.h"
 				>
 			</File>
 			<File
@@ -719,6 +751,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\compat\strlcpy.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\strtoimax.c"
 				>
 			</File>
 			<File
@@ -794,6 +830,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\bulk-checkin.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\bundle.c"
 				>
 			</File>
@@ -803,6 +843,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\color.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\column.c"
 				>
 			</File>
 			<File
@@ -819,6 +863,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\connect.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\connected.c"
 				>
 			</File>
 			<File
@@ -906,6 +954,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\gpg-interface.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\graph.c"
 				>
 			</File>
@@ -975,6 +1027,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\merge-recursive.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\mergesort.c"
 				>
 			</File>
 			<File
@@ -1098,6 +1154,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\sequencer.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\server-info.c"
 				>
 			</File>
@@ -1207,6 +1267,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\utf8.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\varint.c"
 				>
 			</File>
 			<File
