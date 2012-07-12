@@ -64,6 +64,7 @@ struct dir_struct {
 #define MATCHED_RECURSIVELY 1
 #define MATCHED_FNMATCH 2
 #define MATCHED_EXACTLY 3
+extern char *common_prefix(const char **pathspec);
 extern int match_pathspec(const char **pathspec, const char *name, int namelen, int prefix, char *seen);
 extern int match_pathspec_depth(const struct pathspec *pathspec,
 				const char *name, int namelen,
@@ -101,6 +102,7 @@ extern void setup_standard_excludes(struct dir_struct *dir);
 
 #define REMOVE_DIR_EMPTY_ONLY 01
 #define REMOVE_DIR_KEEP_NESTED_GIT 02
+#define REMOVE_DIR_KEEP_TOPLEVEL 04
 extern int remove_dir_recursively(struct strbuf *path, int flag);
 
 /* tries to remove the path with empty directories along it, ignores ENOENT */

@@ -3,6 +3,7 @@
 test_description='word diff colors'
 
 . ./test-lib.sh
+. "$TEST_DIRECTORY"/diff-lib.sh
 
 cat >pre.simple <<-\EOF
 	h(4)
@@ -293,12 +294,17 @@ test_expect_success '--word-diff=none' '
 	word_diff --word-diff=plain --word-diff=none
 '
 
+test_expect_success 'unset default driver' '
+	test_unconfig diff.wordregex
+'
+
 test_language_driver bibtex
 test_language_driver cpp
 test_language_driver csharp
 test_language_driver fortran
 test_language_driver html
 test_language_driver java
+test_language_driver matlab
 test_language_driver objc
 test_language_driver pascal
 test_language_driver perl
@@ -331,6 +337,51 @@ test_expect_success 'word-diff with diff.sbe' '
 	test_when_finished "git config --unset diff.suppress-blank-empty" &&
 	git config diff.suppress-blank-empty true &&
 	word_diff --word-diff=plain
+'
+
+test_expect_success 'word-diff with no newline at EOF' '
+	cat >expect <<-\EOF &&
+	diff --git a/pre b/post
+	index 7bf316e..3dd0303 100644
+	--- a/pre
+	+++ b/post
+	@@ -1 +1 @@
+	a a [-a-]{+ab+} a a
+	EOF
+	printf "%s" "a a a a a" >pre &&
+	printf "%s" "a a ab a a" >post &&
+	word_diff --word-diff=plain
+'
+
+test_expect_success 'setup history with two files' '
+	echo "a b; c" >a.tex &&
+	echo "a b; c" >z.txt &&
+	git add a.tex z.txt &&
+	git commit -minitial &&
+
+	# modify both
+	echo "a bx; c" >a.tex &&
+	echo "a bx; c" >z.txt &&
+	git commit -mmodified -a
+'
+
+test_expect_success 'wordRegex for the first file does not apply to the second' '
+	echo "*.tex diff=tex" >.gitattributes &&
+	git config diff.tex.wordRegex "[a-z]+|." &&
+	cat >expect <<-\EOF &&
+		diff --git a/a.tex b/a.tex
+		--- a/a.tex
+		+++ b/a.tex
+		@@ -1 +1 @@
+		a [-b-]{+bx+}; c
+		diff --git a/z.txt b/z.txt
+		--- a/z.txt
+		+++ b/z.txt
+		@@ -1 +1 @@
+		a [-b;-]{+bx;+} c
+	EOF
+	git diff --word-diff HEAD~ >actual &&
+	compare_diff_patch expect actual
 '
 
 test_done

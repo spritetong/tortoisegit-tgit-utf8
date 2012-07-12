@@ -800,25 +800,25 @@ static int check_ancestors(const char *prefix)
 {
 	struct rev_info revs;
 	struct object_array pending_copy;
-	int i, res;
+	int res;
 
 	bisect_rev_setup(&revs, prefix, "^%s", "%s", 0);
 
 	/* Save pending objects, so they can be cleaned up later. */
-	memset(&pending_copy, 0, sizeof(pending_copy));
-	for (i = 0; i < revs.pending.nr; i++)
-		add_object_array(revs.pending.objects[i].item,
-				 revs.pending.objects[i].name,
-				 &pending_copy);
+	pending_copy = revs.pending;
+	revs.leak_pending = 1;
 
+	/*
+	 * bisect_common calls prepare_revision_walk right away, which
+	 * (together with .leak_pending = 1) makes us the sole owner of
+	 * the list of pending objects.
+	 */
 	bisect_common(&revs);
 	res = (revs.commits != NULL);
 
 	/* Clean up objects used, as they will be reused. */
-	for (i = 0; i < pending_copy.nr; i++) {
-		struct object *o = pending_copy.objects[i].item;
-		clear_commit_marks((struct commit *)o, ALL_REV_FLAGS);
-	}
+	clear_commit_marks_for_object_array(&pending_copy, ALL_REV_FLAGS);
+	free(pending_copy.objects);
 
 	return res;
 }
@@ -833,7 +833,7 @@ static int check_ancestors(const char *prefix)
  */
 static void check_good_are_ancestors_of_bad(const char *prefix, int no_checkout)
 {
-	const char *filename = git_path("BISECT_ANCESTORS_OK");
+	char *filename = xstrdup(git_path("BISECT_ANCESTORS_OK"));
 	struct stat st;
 	int fd;
 
@@ -842,11 +842,11 @@ static void check_good_are_ancestors_of_bad(const char *prefix, int no_checkout)
 
 	/* Check if file BISECT_ANCESTORS_OK exists. */
 	if (!stat(filename, &st) && S_ISREG(st.st_mode))
-		return;
+		goto done;
 
 	/* Bisecting with no good rev is ok. */
 	if (good_revs.nr == 0)
-		return;
+		goto done;
 
 	/* Check if all good revs are ancestor of the bad rev. */
 	if (check_ancestors(prefix))
@@ -859,6 +859,8 @@ static void check_good_are_ancestors_of_bad(const char *prefix, int no_checkout)
 			filename, strerror(errno));
 	else
 		close(fd);
+ done:
+	free(filename);
 }
 
 /*

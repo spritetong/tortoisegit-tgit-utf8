@@ -72,6 +72,8 @@ extern const struct refspec *tag_refspec;
 struct ref *alloc_ref(const char *name);
 struct ref *copy_ref(const struct ref *ref);
 struct ref *copy_ref_list(const struct ref *ref);
+void sort_ref_list(struct ref **, int (*cmp)(const void *, const void *));
+int ref_compare_name(const void *, const void *);
 
 int check_ref_type(const struct ref *ref, int flags);
 
@@ -96,8 +98,8 @@ void free_refspec(int nr_refspec, struct refspec *refspec);
 char *apply_refspecs(struct refspec *refspecs, int nr_refspec,
 		     const char *name);
 
-int match_refs(struct ref *src, struct ref **dst,
-	       int nr_refspec, const char **refspec, int all);
+int match_push_refs(struct ref *src, struct ref **dst,
+		    int nr_refspec, const char **refspec, int all);
 void set_ref_status_for_push(struct ref *remote_refs, int send_mirror,
 	int force_update);
 
@@ -145,7 +147,8 @@ int branch_merge_matches(struct branch *, int n, const char *);
 enum match_refs_flags {
 	MATCH_REFS_NONE		= 0,
 	MATCH_REFS_ALL 		= (1 << 0),
-	MATCH_REFS_MIRROR	= (1 << 1)
+	MATCH_REFS_MIRROR	= (1 << 1),
+	MATCH_REFS_PRUNE	= (1 << 2)
 };
 
 /* Reporting of tracking info */

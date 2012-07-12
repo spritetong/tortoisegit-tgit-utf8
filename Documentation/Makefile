@@ -1,12 +1,13 @@
 MAN1_TXT= \
 	$(filter-out $(addsuffix .txt, $(ARTICLES) $(SP_ARTICLES)), \
 		$(wildcard git-*.txt)) \
-	gitk.txt git.txt
+	gitk.txt gitweb.txt git.txt
 MAN5_TXT=gitattributes.txt gitignore.txt gitmodules.txt githooks.txt \
-	gitrepository-layout.txt
+	gitrepository-layout.txt gitweb.conf.txt
 MAN7_TXT=gitcli.txt gittutorial.txt gittutorial-2.txt \
 	gitcvs-migration.txt gitcore-tutorial.txt gitglossary.txt \
 	gitdiffcore.txt gitnamespaces.txt gitrevisions.txt gitworkflows.txt
+MAN7_TXT += gitcredentials.txt
 
 MAN_TXT = $(MAN1_TXT) $(MAN5_TXT) $(MAN7_TXT)
 MAN_XML=$(patsubst %.txt,%.xml,$(MAN_TXT))
@@ -19,7 +20,10 @@ ARTICLES += everyday
 ARTICLES += git-tools
 ARTICLES += git-bisect-lk2009
 # with their own formatting rules.
-SP_ARTICLES = howto/revert-branch-rebase howto/using-merge-subtree user-manual
+SP_ARTICLES = user-manual
+SP_ARTICLES += howto/revert-branch-rebase
+SP_ARTICLES += howto/using-merge-subtree
+SP_ARTICLES += howto/using-signed-tag-in-pull-request
 API_DOCS = $(patsubst %.txt,%,$(filter-out technical/api-index-skel.txt technical/api-index.txt, $(wildcard technical/api-*.txt)))
 SP_ARTICLES += $(API_DOCS)
 SP_ARTICLES += technical/api-index
@@ -46,8 +50,8 @@ MANPAGE_XSL = manpage-normal.xsl
 XMLTO_EXTRA =
 INSTALL?=install
 RM ?= rm -f
-DOC_REF = origin/man
-HTML_REF = origin/html
+MAN_REPO = ../../git-manpages
+HTML_REPO = ../../git-htmldocs
 
 infodir?=$(prefix)/share/info
 MAKEINFO=makeinfo
@@ -78,7 +82,7 @@ endif
 #
 
 ifndef ASCIIDOC7
-ASCIIDOC_EXTRA += -a asciidoc7compatible -a no-inline-literal
+ASCIIDOC_EXTRA += -a asciidoc7compatible
 endif
 ifdef DOCBOOK_XSL_172
 ASCIIDOC_EXTRA += -a git-asciidoc-no-roff
@@ -119,6 +123,16 @@ endif
 SHELL_PATH ?= $(SHELL)
 # Shell quote;
 SHELL_PATH_SQ = $(subst ','\'',$(SHELL_PATH))
+
+ifdef DEFAULT_PAGER
+DEFAULT_PAGER_SQ = $(subst ','\'',$(DEFAULT_PAGER))
+ASCIIDOC_EXTRA += -a 'git-default-pager=$(DEFAULT_PAGER_SQ)'
+endif
+
+ifdef DEFAULT_EDITOR
+DEFAULT_EDITOR_SQ = $(subst ','\'',$(DEFAULT_EDITOR))
+ASCIIDOC_EXTRA += -a 'git-default-editor=$(DEFAULT_EDITOR_SQ)'
+endif
 
 #
 # Please note that there is a minor bug in asciidoc.
@@ -266,6 +280,7 @@ technical/api-index.txt: technical/api-index-skel.txt \
 	technical/api-index.sh $(patsubst %,%.txt,$(API_DOCS))
 	$(QUIET_GEN)cd technical && '$(SHELL_PATH_SQ)' ./api-index.sh
 
+technical/%.html: ASCIIDOC_EXTRA += -a git-relative-html-prefix=../
 $(patsubst %,%.html,$(API_DOCS) technical/api-index): %.html : %.txt
 	$(QUIET_ASCIIDOC)$(ASCIIDOC) -b xhtml11 -f asciidoc.conf \
 		$(ASCIIDOC_EXTRA) -agit_version=$(GIT_VERSION) $*.txt
@@ -319,6 +334,7 @@ $(patsubst %,%.html,$(ARTICLES)) : %.html : %.txt
 
 WEBDOC_DEST = /pub/software/scm/git/docs
 
+howto/%.html: ASCIIDOC_EXTRA += -a git-relative-html-prefix=../
 $(patsubst %.txt,%.html,$(wildcard howto/*.txt)): %.html : %.txt
 	$(QUIET_ASCIIDOC)$(RM) $@+ $@ && \
 	sed -e '1,/^$$/d' $< | $(ASCIIDOC) $(ASCIIDOC_EXTRA) -b xhtml11 - >$@+ && \
@@ -327,12 +343,23 @@ $(patsubst %.txt,%.html,$(wildcard howto/*.txt)): %.html : %.txt
 install-webdoc : html
 	'$(SHELL_PATH_SQ)' ./install-webdoc.sh $(WEBDOC_DEST)
 
+# You must have a clone of git-htmldocs and git-manpages repositories
+# next to the git repository itself for the following to work.
+
 quick-install: quick-install-man
 
-quick-install-man:
-	'$(SHELL_PATH_SQ)' ./install-doc-quick.sh $(DOC_REF) $(DESTDIR)$(mandir)
+require-manrepo::
+	@if test ! -d $(MAN_REPO); \
+	then echo "git-manpages repository must exist at $(MAN_REPO)"; exit 1; fi
 
-quick-install-html:
-	'$(SHELL_PATH_SQ)' ./install-doc-quick.sh $(HTML_REF) $(DESTDIR)$(htmldir)
+quick-install-man: require-manrepo
+	'$(SHELL_PATH_SQ)' ./install-doc-quick.sh $(MAN_REPO) $(DESTDIR)$(mandir)
+
+require-htmlrepo::
+	@if test ! -d $(HTML_REPO); \
+	then echo "git-htmldocs repository must exist at $(HTML_REPO)"; exit 1; fi
+
+quick-install-html: require-htmlrepo
+	'$(SHELL_PATH_SQ)' ./install-doc-quick.sh $(HTML_REPO) $(DESTDIR)$(htmldir)
 
 .PHONY: FORCE

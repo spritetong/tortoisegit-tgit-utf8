@@ -16,6 +16,7 @@ our \$projectroot = "$safe_pwd";
 our \$project_maxdepth = 8;
 our \$home_link_str = 'projects';
 our \$site_name = '[localhost]';
+our \$site_html_head_string = '';
 our \$site_header = '';
 our \$site_footer = '';
 our \$home_text = 'indextext.html';
@@ -68,7 +69,7 @@ gitweb_run () {
 	# written to web server logs, so we are not interested in that:
 	# we are interested only in properly formatted errors/warnings
 	rm -f gitweb.log &&
-	perl -- "$SCRIPT_NAME" \
+	"$PERL_PATH" -- "$SCRIPT_NAME" \
 		>gitweb.output 2>gitweb.log &&
 	perl -w -e '
 		open O, ">gitweb.headers";

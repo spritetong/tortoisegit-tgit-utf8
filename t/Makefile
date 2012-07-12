@@ -17,9 +17,9 @@ DEFAULT_TEST_TARGET ?= test
 # Shell quote;
 SHELL_PATH_SQ = $(subst ','\'',$(SHELL_PATH))
 
-T = $(wildcard t[0-9][0-9][0-9][0-9]-*.sh)
-TSVN = $(wildcard t91[0-9][0-9]-*.sh)
-TGITWEB = $(wildcard t95[0-9][0-9]-*.sh)
+T = $(sort $(wildcard t[0-9][0-9][0-9][0-9]-*.sh))
+TSVN = $(sort $(wildcard t91[0-9][0-9]-*.sh))
+TGITWEB = $(sort $(wildcard t95[0-9][0-9]-*.sh))
 
 all: $(DEFAULT_TEST_TARGET)
 
@@ -28,7 +28,7 @@ test: pre-clean $(TEST_LINT)
 
 prove: pre-clean $(TEST_LINT)
 	@echo "*** prove ***"; GIT_CONFIG=.git/config $(PROVE) --exec '$(SHELL_PATH_SQ)' $(GIT_PROVE_OPTS) $(T) :: $(GIT_TEST_OPTS)
-	$(MAKE) clean
+	$(MAKE) clean-except-prove-cache
 
 $(T):
 	@echo "*** $@ ***"; GIT_CONFIG=.git/config '$(SHELL_PATH_SQ)' $@ $(GIT_TEST_OPTS)
@@ -36,9 +36,11 @@ $(T):
 pre-clean:
 	$(RM) -r test-results
 
-clean:
+clean-except-prove-cache:
 	$(RM) -r 'trash directory'.* test-results
 	$(RM) -r valgrind/bin
+
+clean: clean-except-prove-cache
 	$(RM) .prove
 
 test-lint: test-lint-duplicates test-lint-executable
@@ -72,6 +74,9 @@ gitweb-test:
 
 valgrind:
 	$(MAKE) GIT_TEST_OPTS="$(GIT_TEST_OPTS) --valgrind"
+
+perf:
+	$(MAKE) -C perf/ all
 
 # Smoke testing targets
 -include ../GIT-VERSION-FILE
@@ -111,4 +116,4 @@ smoke_report: smoke
 		http://smoke.git.nix.is/app/projects/process_add_report/1 \
 	| grep -v ^Redirecting
 
-.PHONY: pre-clean $(T) aggregate-results clean valgrind smoke smoke_report
+.PHONY: pre-clean $(T) aggregate-results clean valgrind perf

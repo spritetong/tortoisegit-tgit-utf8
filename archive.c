@@ -59,12 +59,15 @@ static void format_subst(const struct commit *commit,
 	free(to_free);
 }
 
-static void *sha1_file_to_archive(const char *path, const unsigned char *sha1,
-		unsigned int mode, enum object_type *type,
-		unsigned long *sizep, const struct commit *commit)
+void *sha1_file_to_archive(const struct archiver_args *args,
+			   const char *path, const unsigned char *sha1,
+			   unsigned int mode, enum object_type *type,
+			   unsigned long *sizep)
 {
 	void *buffer;
+	const struct commit *commit = args->convert ? args->commit : NULL;
 
+	path += args->baselen;
 	buffer = read_sha1_file(sha1, type, sizep);
 	if (buffer && S_ISREG(mode)) {
 		struct strbuf buf = STRBUF_INIT;
@@ -109,12 +112,9 @@ static int write_archive_entry(const unsigned char *sha1, const char *base,
 	write_archive_entry_fn_t write_entry = c->write_entry;
 	struct git_attr_check check[2];
 	const char *path_without_prefix;
-	int convert = 0;
 	int err;
-	enum object_type type;
-	unsigned long size;
-	void *buffer;
 
+	args->convert = 0;
 	strbuf_reset(&path);
 	strbuf_grow(&path, PATH_MAX);
 	strbuf_add(&path, args->base, args->baselen);
@@ -126,28 +126,22 @@ static int write_archive_entry(const unsigned char *sha1, const char *base,
 	if (!git_check_attr(path_without_prefix, ARRAY_SIZE(check), check)) {
 		if (ATTR_TRUE(check[0].value))
 			return 0;
-		convert = ATTR_TRUE(check[1].value);
+		args->convert = ATTR_TRUE(check[1].value);
 	}
 
 	if (S_ISDIR(mode) || S_ISGITLINK(mode)) {
 		strbuf_addch(&path, '/');
 		if (args->verbose)
 			fprintf(stderr, "%.*s\n", (int)path.len, path.buf);
-		err = write_entry(args, sha1, path.buf, path.len, mode, NULL, 0);
+		err = write_entry(args, sha1, path.buf, path.len, mode);
 		if (err)
 			return err;
 		return (S_ISDIR(mode) ? READ_TREE_RECURSIVE : 0);
 	}
 
-	buffer = sha1_file_to_archive(path_without_prefix, sha1, mode,
-			&type, &size, convert ? args->commit : NULL);
-	if (!buffer)
-		return error("cannot read %s", sha1_to_hex(sha1));
 	if (args->verbose)
 		fprintf(stderr, "%.*s\n", (int)path.len, path.buf);
-	err = write_entry(args, sha1, path.buf, path.len, mode, buffer, size);
-	free(buffer);
-	return err;
+	return write_entry(args, sha1, path.buf, path.len, mode);
 }
 
 int write_archive_entries(struct archiver_args *args,
@@ -167,7 +161,7 @@ int write_archive_entries(struct archiver_args *args,
 		if (args->verbose)
 			fprintf(stderr, "%.*s\n", (int)len, args->base);
 		err = write_entry(args, args->tree->object.sha1, args->base,
-				len, 040777, NULL, 0);
+				  len, 040777);
 		if (err)
 			return err;
 	}
@@ -247,7 +241,8 @@ static void parse_pathspec_arg(const char **pathspec,
 }
 
 static void parse_treeish_arg(const char **argv,
-		struct archiver_args *ar_args, const char *prefix)
+		struct archiver_args *ar_args, const char *prefix,
+		int remote)
 {
 	const char *name = argv[0];
 	const unsigned char *commit_sha1;
@@ -255,6 +250,17 @@ static void parse_treeish_arg(const char **argv,
 	struct tree *tree;
 	const struct commit *commit;
 	unsigned char sha1[20];
+
+	/* Remotes are only allowed to fetch actual refs */
+	if (remote) {
+		char *ref = NULL;
+		const char *colon = strchr(name, ':');
+		int refnamelen = colon ? colon - name : strlen(name);
+
+		if (!dwim_ref(name, refnamelen, sha1, &ref))
+			die("no such ref: %.*s", refnamelen, name);
+		free(ref);
+	}
 
 	if (get_sha1(name, sha1))
 		die("Not a valid object name");
@@ -318,7 +324,7 @@ static int parse_archive_args(int argc, const char **argv,
 			"prepend prefix to each pathname in the archive"),
 		OPT_STRING('o', "output", &output, "file",
 			"write the archive to this file"),
-		OPT_BOOLEAN(0, "worktree-attributes", &worktree_attributes,
+		OPT_BOOL(0, "worktree-attributes", &worktree_attributes,
 			"read .gitattributes in working directory"),
 		OPT__VERBOSE(&verbose, "report archived files on stderr"),
 		OPT__COMPR('0', &compression_level, "store only", 0),
@@ -332,7 +338,7 @@ static int parse_archive_args(int argc, const char **argv,
 		OPT__COMPR_HIDDEN('8', &compression_level, 8),
 		OPT__COMPR('9', &compression_level, "compress better", 9),
 		OPT_GROUP(""),
-		OPT_BOOLEAN('l', "list", &list,
+		OPT_BOOL('l', "list", &list,
 			"list supported archive formats"),
 		OPT_GROUP(""),
 		OPT_STRING(0, "remote", &remote, "repo",
@@ -414,7 +420,7 @@ int write_archive(int argc, const char **argv, const char *prefix,
 		setup_git_directory();
 	}
 
-	parse_treeish_arg(argv, &args, prefix);
+	parse_treeish_arg(argv, &args, prefix, remote);
 	parse_pathspec_arg(argv + 1, &args);
 
 	return ar->write_archive(ar, &args);

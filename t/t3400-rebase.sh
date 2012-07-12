@@ -160,20 +160,18 @@ rm -f B
 
 test_expect_success 'fail when upstream arg is missing and not on branch' '
 	git checkout topic &&
-	test_must_fail git rebase >output.out &&
-	grep "You are not currently on a branch" output.out
+	test_must_fail git rebase
 '
 
 test_expect_success 'fail when upstream arg is missing and not configured' '
 	git checkout -b no-config topic &&
-	test_must_fail git rebase >output.out &&
-	grep "branch.no-config.merge" output.out
+	test_must_fail git rebase
 '
 
 test_expect_success 'default to @{upstream} when upstream arg is missing' '
 	git checkout -b default topic &&
-	git config branch.default.remote .
-	git config branch.default.merge refs/heads/master
+	git config branch.default.remote . &&
+	git config branch.default.merge refs/heads/master &&
 	git rebase &&
 	test "$(git rev-parse default~1)" = "$(git rev-parse master)"
 '
@@ -216,6 +214,29 @@ test_expect_success 'rebase -m can copy notes' '
 	git reset --hard n3 &&
 	git rebase -m --onto n1 n2 &&
 	test "a note" = "$(git notes show HEAD)"
+'
+
+test_expect_success 'rebase commit with an ancient timestamp' '
+	git reset --hard &&
+
+	>old.one && git add old.one && test_tick &&
+	git commit --date="@12345 +0400" -m "Old one" &&
+	>old.two && git add old.two && test_tick &&
+	git commit --date="@23456 +0500" -m "Old two" &&
+	>old.three && git add old.three && test_tick &&
+	git commit --date="@34567 +0600" -m "Old three" &&
+
+	git cat-file commit HEAD^^ >actual &&
+	grep "author .* 12345 +0400$" actual &&
+	git cat-file commit HEAD^ >actual &&
+	grep "author .* 23456 +0500$" actual &&
+	git cat-file commit HEAD >actual &&
+	grep "author .* 34567 +0600$" actual &&
+
+	git rebase --onto HEAD^^ HEAD^ &&
+
+	git cat-file commit HEAD >actual &&
+	grep "author .* 34567 +0600$" actual
 '
 
 test_done

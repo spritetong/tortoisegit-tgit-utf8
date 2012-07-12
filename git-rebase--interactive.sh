@@ -143,6 +143,21 @@ die_with_patch () {
 	die "$2"
 }
 
+exit_with_patch () {
+	echo "$1" > "$state_dir"/stopped-sha
+	make_patch $1
+	git rev-parse --verify HEAD > "$amend"
+	warn "You can amend the commit now, with"
+	warn
+	warn "	git commit --amend"
+	warn
+	warn "Once you are satisfied with your changes, run"
+	warn
+	warn "	git rebase --continue"
+	warn
+	exit $2
+}
+
 die_abort () {
 	rm -rf "$state_dir"
 	die "$1"
@@ -150,6 +165,14 @@ die_abort () {
 
 has_action () {
 	sane_grep '^[^#]' "$1" >/dev/null
+}
+
+is_empty_commit() {
+	tree=$(git rev-parse -q --verify "$1"^{tree} 2>/dev/null ||
+		die "$1: not a commit that can be picked")
+	ptree=$(git rev-parse -q --verify "$1"^^{tree} 2>/dev/null ||
+		ptree=4b825dc642cb6eb9a060e54bf8d69288fbee4904)
+	test "$tree" = "$ptree"
 }
 
 # Run command with GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL, and
@@ -161,14 +184,34 @@ do_with_author () {
 	)
 }
 
+git_sequence_editor () {
+	if test -z "$GIT_SEQUENCE_EDITOR"
+	then
+		GIT_SEQUENCE_EDITOR="$(git config sequence.editor)"
+		if [ -z "$GIT_SEQUENCE_EDITOR" ]
+		then
+			GIT_SEQUENCE_EDITOR="$(git var GIT_EDITOR)" || return $?
+		fi
+	fi
+
+	eval "$GIT_SEQUENCE_EDITOR" '"$@"'
+}
+
 pick_one () {
 	ff=--ff
+
 	case "$1" in -n) sha1=$2; ff= ;; *) sha1=$1 ;; esac
 	case "$force_rebase" in '') ;; ?*) ff= ;; esac
 	output git rev-parse --verify $sha1 || die "Invalid commit name: $sha1"
+
+	if is_empty_commit "$sha1"
+	then
+		empty_args="--allow-empty"
+	fi
+
 	test -d "$rewritten" &&
 		pick_one_preserving_merges "$@" && return
-	output git cherry-pick $ff "$@"
+	output git cherry-pick $empty_args $ff "$@"
 }
 
 pick_one_preserving_merges () {
@@ -395,7 +438,13 @@ do_next () {
 		mark_action_done
 		pick_one $sha1 ||
 			die_with_patch $sha1 "Could not apply $sha1... $rest"
-		git commit --amend --no-post-rewrite
+		git commit --amend --no-post-rewrite || {
+			warn "Could not amend commit after successfully picking $sha1... $rest"
+			warn "This is most likely due to an empty commit message, or the pre-commit hook"
+			warn "failed. If the pre-commit hook failed, you may need to resolve the issue before"
+			warn "you are able to reword the commit."
+			exit_with_patch $sha1 1
+		}
 		record_in_rewritten $sha1
 		;;
 	edit|e)
@@ -404,19 +453,8 @@ do_next () {
 		mark_action_done
 		pick_one $sha1 ||
 			die_with_patch $sha1 "Could not apply $sha1... $rest"
-		echo "$sha1" > "$state_dir"/stopped-sha
-		make_patch $sha1
-		git rev-parse --verify HEAD > "$amend"
 		warn "Stopped at $sha1... $rest"
-		warn "You can amend the commit now, with"
-		warn
-		warn "	git commit --amend"
-		warn
-		warn "Once you are satisfied with your changes, run"
-		warn
-		warn "	git rebase --continue"
-		warn
-		exit 0
+		exit_with_patch $sha1 0
 		;;
 	squash|s|fixup|f)
 		case "$command" in
@@ -649,7 +687,7 @@ rearrange_squash () {
 case "$action" in
 continue)
 	# do we have anything to commit?
-	if git diff-index --cached --quiet --ignore-submodules HEAD --
+	if git diff-index --cached --quiet HEAD --
 	then
 		: Nothing to commit -- skip this
 	else
@@ -757,9 +795,17 @@ git rev-list $merges_option --pretty=oneline --abbrev-commit \
 	sed -n "s/^>//p" |
 while read -r shortsha1 rest
 do
+
+	if test -z "$keep_empty" && is_empty_commit $shortsha1
+	then
+		comment_out="# "
+	else
+		comment_out=
+	fi
+
 	if test t != "$preserve_merges"
 	then
-		printf '%s\n' "pick $shortsha1 $rest" >> "$todo"
+		printf '%s\n' "${comment_out}pick $shortsha1 $rest" >>"$todo"
 	else
 		sha1=$(git rev-parse $shortsha1)
 		if test -z "$rebase_root"
@@ -778,7 +824,7 @@ do
 		if test f = "$preserve"
 		then
 			touch "$rewritten"/$sha1
-			printf '%s\n' "pick $shortsha1 $rest" >> "$todo"
+			printf '%s\n' "${comment_out}pick $shortsha1 $rest" >>"$todo"
 		fi
 	fi
 done
@@ -823,16 +869,24 @@ cat >> "$todo" << EOF
 #  f, fixup = like "squash", but discard this commit's log message
 #  x, exec = run command (the rest of the line) using shell
 #
+# These lines can be re-ordered; they are executed from top to bottom.
+#
 # If you remove a line here THAT COMMIT WILL BE LOST.
 # However, if you remove everything, the rebase will be aborted.
 #
 EOF
 
+if test -z "$keep_empty"
+then
+	echo "# Note that empty commits are commented out" >>"$todo"
+fi
+
+
 has_action "$todo" ||
 	die_abort "Nothing to do"
 
 cp "$todo" "$todo".backup
-git_editor "$todo" ||
+git_sequence_editor "$todo" ||
 	die_abort "Could not execute editor"
 
 has_action "$todo" ||

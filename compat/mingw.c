@@ -1192,7 +1192,7 @@ static void mingw_execve(const char *cmd, char *const *argv, char *const *env)
 	}
 }
 
-void mingw_execvp(const char *cmd, char *const *argv)
+int mingw_execvp(const char *cmd, char *const *argv)
 {
 	char **path = get_path_split();
 	char *prog = path_lookup(cmd, path, 0);
@@ -1204,11 +1204,13 @@ void mingw_execvp(const char *cmd, char *const *argv)
 		errno = ENOENT;
 
 	free_path_split(path);
+	return -1;
 }
 
-void mingw_execv(const char *cmd, char *const *argv)
+int mingw_execv(const char *cmd, char *const *argv)
 {
 	mingw_execve(cmd, argv, environ);
+	return -1;
 }
 
 int mingw_kill(pid_t pid, int sig)
@@ -1552,6 +1554,13 @@ static void ensure_socket_initialization(void)
 
 	atexit(socket_cleanup);
 	initialized = 1;
+}
+
+#undef gethostname
+int mingw_gethostname(char *name, int namelen)
+{
+    ensure_socket_initialization();
+    return gethostname(name, namelen);
 }
 
 #undef gethostbyname
@@ -1945,7 +1954,7 @@ char *getpass(const char *prompt)
 	return strbuf_detach(&buf, NULL);
 }
 
-pid_t waitpid(pid_t pid, int *status, unsigned options)
+pid_t waitpid(pid_t pid, int *status, int options)
 {
 	HANDLE h = OpenProcess(SYNCHRONIZE | PROCESS_QUERY_INFORMATION,
 	    FALSE, pid);

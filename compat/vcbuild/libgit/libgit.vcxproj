@@ -172,16 +172,35 @@ IF NOT EXIST $(ProjectDir)\..\sys\type.h echo %3b&gt; $(ProjectDir)\..\sys\type.
     <BuildLog />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\builtin\column.c">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)buildin-%(Filename).obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)buildin-%(Filename).obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)buildin-%(Filename).obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)buildin-%(Filename).obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\..\bulk-checkin.c" />
+    <ClCompile Include="..\..\..\column.c" />
+    <ClCompile Include="..\..\..\connected.c" />
+    <ClCompile Include="..\..\..\credential-cache--daemon.c" />
+    <ClCompile Include="..\..\..\credential-cache.c" />
+    <ClCompile Include="..\..\..\credential-store.c" />
+    <ClCompile Include="..\..\..\credential.c" />
+    <ClCompile Include="..\..\..\gpg-interface.c" />
+    <ClCompile Include="..\..\..\mergesort.c" />
+    <ClCompile Include="..\..\..\prompt.c" />
+    <ClCompile Include="..\..\..\sequencer.c" />
+    <ClCompile Include="..\..\..\varint.c" />
     <ClCompile Include="..\..\msvc.c" />
     <ClCompile Include="..\..\..\block-sha1\sha1.c" />
     <ClCompile Include="..\..\basename.c" />
+    <ClCompile Include="..\..\strtoimax.c" />
+    <ClCompile Include="..\..\terminal.c" />
     <ClCompile Include="..\..\win32\dirent.c" />
     <ClCompile Include="..\..\fnmatch\fnmatch.c" />
     <ClCompile Include="..\..\fopen.c" />
     <ClCompile Include="..\..\memmem.c" />
     <ClCompile Include="..\..\mkdtemp.c" />
     <ClCompile Include="..\..\obstack.c" />
-    <ClCompile Include="..\..\win32\sys\poll.c" />
     <ClCompile Include="..\..\pread.c" />
     <ClCompile Include="..\..\qsort.c" />
     <ClCompile Include="..\..\regex\regex.c">
@@ -197,6 +216,7 @@ IF NOT EXIST $(ProjectDir)\..\sys\type.h echo %3b&gt; $(ProjectDir)\..\sys\type.
     <ClCompile Include="..\..\strtoumax.c" />
     <ClCompile Include="..\..\unsetenv.c" />
     <ClCompile Include="..\..\win32mmap.c" />
+    <ClCompile Include="..\..\win32\poll.c" />
     <ClCompile Include="..\..\winansi.c" />
     <ClCompile Include="..\..\..\abspath.c" />
     <ClCompile Include="..\..\..\advice.c" />
@@ -877,6 +897,17 @@ IF NOT EXIST $(ProjectDir)\..\sys\type.h echo %3b&gt; $(ProjectDir)\..\sys\type.
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\bulk-checkin.h" />
+    <ClInclude Include="..\..\..\column.h" />
+    <ClInclude Include="..\..\..\connected.h" />
+    <ClInclude Include="..\..\..\credential.h" />
+    <ClInclude Include="..\..\..\fmt-merge-msg.h" />
+    <ClInclude Include="..\..\..\gpg-interface.h" />
+    <ClInclude Include="..\..\..\mergesort.h" />
+    <ClInclude Include="..\..\..\prompt.h" />
+    <ClInclude Include="..\..\..\sequencer.h" />
+    <ClInclude Include="..\..\..\unix-socket.h" />
+    <ClInclude Include="..\..\..\varint.h" />
     <ClInclude Include="..\..\msvc.h" />
     <ClInclude Include="..\..\..\archive.h" />
     <ClInclude Include="..\..\..\argv-array.h" />
@@ -955,6 +986,7 @@ IF NOT EXIST $(ProjectDir)\..\sys\type.h echo %3b&gt; $(ProjectDir)\..\sys\type.
     <ClInclude Include="..\..\mingw.h" />
     <ClInclude Include="..\..\obstack.h" />
     <ClInclude Include="..\..\regex\regex.h" />
+    <ClInclude Include="..\..\terminal.h" />
     <ClInclude Include="..\..\win32.h" />
     <ClInclude Include="..\..\..\xdiff\xdiff.h" />
     <ClInclude Include="..\..\..\xdiff\xdiffi.h" />
@@ -964,6 +996,7 @@ IF NOT EXIST $(ProjectDir)\..\sys\type.h echo %3b&gt; $(ProjectDir)\..\sys\type.
     <ClInclude Include="..\..\..\xdiff\xprepare.h" />
     <ClInclude Include="..\..\..\xdiff\xtypes.h" />
     <ClInclude Include="..\..\..\xdiff\xutils.h" />
+    <ClInclude Include="..\..\win32\poll.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

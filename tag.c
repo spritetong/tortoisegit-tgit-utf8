@@ -24,6 +24,18 @@ struct object *deref_tag(struct object *o, const char *warn, int warnlen)
 	return o;
 }
 
+struct object *deref_tag_noverify(struct object *o)
+{
+	while (o && o->type == OBJ_TAG) {
+		o = parse_object(o->sha1);
+		if (o && o->type == OBJ_TAG && ((struct tag *)o)->tagged)
+			o = ((struct tag *)o)->tagged;
+		else
+			o = NULL;
+	}
+	return o;
+}
+
 struct tag *lookup_tag(const unsigned char *sha1)
 {
 	struct object *obj = lookup_object(sha1);
@@ -139,6 +151,11 @@ int parse_tag(struct tag *item)
 	return ret;
 }
 
+/*
+ * Look at a signed tag object, and return the offset where
+ * the embedded detached signature begins, or the end of the
+ * data when there is no such signature.
+ */
 size_t parse_signature(const char *buf, unsigned long size)
 {
 	char *eol;

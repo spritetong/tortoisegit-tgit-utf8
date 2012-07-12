@@ -8,6 +8,7 @@
 #include "refs.h"
 #include "string-list.h"
 #include "color.h"
+#include "gpg-interface.h"
 
 struct decoration name_decoration = { "object names" };
 
@@ -119,9 +120,9 @@ static int add_ref_decoration(const char *refname, const unsigned char *sha1, in
 		type = DECORATION_REF_REMOTE;
 	else if (!prefixcmp(refname, "refs/tags/"))
 		type = DECORATION_REF_TAG;
-	else if (!prefixcmp(refname, "refs/stash"))
+	else if (!strcmp(refname, "refs/stash"))
 		type = DECORATION_REF_STASH;
-	else if (!prefixcmp(refname, "HEAD"))
+	else if (!strcmp(refname, "HEAD"))
 		type = DECORATION_REF_HEAD;
 
 	if (!cb_data || *(int *)cb_data == DECORATE_SHORT_REFS)
@@ -162,6 +163,14 @@ static void show_parents(struct commit *commit, int abbrev)
 	for (p = commit->parents; p ; p = p->next) {
 		struct commit *parent = p->item;
 		printf(" %s", find_unique_abbrev(parent->object.sha1, abbrev));
+	}
+}
+
+static void show_children(struct rev_info *opt, struct commit *commit, int abbrev)
+{
+	struct commit_list *p = lookup_decoration(&opt->children, &commit->object);
+	for ( ; p; p = p->next) {
+		printf(" %s", find_unique_abbrev(p->item->object.sha1, abbrev));
 	}
 }
 
@@ -290,19 +299,22 @@ static unsigned int digits_in_number(unsigned int number)
 	return result;
 }
 
-void get_patch_filename(struct commit *commit, int nr, const char *suffix,
-			struct strbuf *buf)
+void get_patch_filename(struct commit *commit, const char *subject, int nr,
+			const char *suffix, struct strbuf *buf)
 {
 	int suffix_len = strlen(suffix) + 1;
 	int start_len = buf->len;
 
-	strbuf_addf(buf, commit ? "%04d-" : "%d", nr);
-	if (commit) {
+	strbuf_addf(buf, commit || subject ? "%04d-" : "%d", nr);
+	if (commit || subject) {
 		int max_len = start_len + FORMAT_PATCH_NAME_MAX - suffix_len;
 		struct pretty_print_context ctx = {0};
-		ctx.date_mode = DATE_NORMAL;
 
-		format_commit_message(commit, "%f", buf, &ctx);
+		if (subject)
+			strbuf_addstr(buf, subject);
+		else if (commit)
+			format_commit_message(commit, "%f", buf, &ctx);
+
 		if (max_len < buf->len)
 			strbuf_setlen(buf, max_len);
 		strbuf_addstr(buf, suffix);
@@ -375,8 +387,8 @@ void log_write_email_headers(struct rev_info *opt, struct commit *commit,
 			 mime_boundary_leader, opt->mime_boundary);
 		extra_headers = subject_buffer;
 
-		get_patch_filename(opt->numbered_files ? NULL : commit, opt->nr,
-				    opt->patch_suffix, &filename);
+		get_patch_filename(opt->numbered_files ? NULL : commit, NULL,
+				   opt->nr, opt->patch_suffix, &filename);
 		snprintf(buffer, sizeof(buffer) - 1,
 			 "\n--%s%s\n"
 			 "Content-Type: text/x-patch;"
@@ -393,6 +405,129 @@ void log_write_email_headers(struct rev_info *opt, struct commit *commit,
 	}
 	*subject_p = subject;
 	*extra_headers_p = extra_headers;
+}
+
+static void show_sig_lines(struct rev_info *opt, int status, const char *bol)
+{
+	const char *color, *reset, *eol;
+
+	color = diff_get_color_opt(&opt->diffopt,
+				   status ? DIFF_WHITESPACE : DIFF_FRAGINFO);
+	reset = diff_get_color_opt(&opt->diffopt, DIFF_RESET);
+	while (*bol) {
+		eol = strchrnul(bol, '\n');
+		printf("%s%.*s%s%s", color, (int)(eol - bol), bol, reset,
+		       *eol ? "\n" : "");
+		bol = (*eol) ? (eol + 1) : eol;
+	}
+}
+
+static void show_signature(struct rev_info *opt, struct commit *commit)
+{
+	struct strbuf payload = STRBUF_INIT;
+	struct strbuf signature = STRBUF_INIT;
+	struct strbuf gpg_output = STRBUF_INIT;
+	int status;
+
+	if (parse_signed_commit(commit->object.sha1, &payload, &signature) <= 0)
+		goto out;
+
+	status = verify_signed_buffer(payload.buf, payload.len,
+				      signature.buf, signature.len,
+				      &gpg_output);
+	if (status && !gpg_output.len)
+		strbuf_addstr(&gpg_output, "No signature\n");
+
+	show_sig_lines(opt, status, gpg_output.buf);
+
+ out:
+	strbuf_release(&gpg_output);
+	strbuf_release(&payload);
+	strbuf_release(&signature);
+}
+
+static int which_parent(const unsigned char *sha1, const struct commit *commit)
+{
+	int nth;
+	const struct commit_list *parent;
+
+	for (nth = 0, parent = commit->parents; parent; parent = parent->next) {
+		if (!hashcmp(parent->item->object.sha1, sha1))
+			return nth;
+		nth++;
+	}
+	return -1;
+}
+
+static int is_common_merge(const struct commit *commit)
+{
+	return (commit->parents
+		&& commit->parents->next
+		&& !commit->parents->next->next);
+}
+
+static void show_one_mergetag(struct rev_info *opt,
+			      struct commit_extra_header *extra,
+			      struct commit *commit)
+{
+	unsigned char sha1[20];
+	struct tag *tag;
+	struct strbuf verify_message;
+	int status, nth;
+	size_t payload_size, gpg_message_offset;
+
+	hash_sha1_file(extra->value, extra->len, typename(OBJ_TAG), sha1);
+	tag = lookup_tag(sha1);
+	if (!tag)
+		return; /* error message already given */
+
+	strbuf_init(&verify_message, 256);
+	if (parse_tag_buffer(tag, extra->value, extra->len))
+		strbuf_addstr(&verify_message, "malformed mergetag\n");
+	else if (is_common_merge(commit) &&
+		 !hashcmp(tag->tagged->sha1,
+			  commit->parents->next->item->object.sha1))
+		strbuf_addf(&verify_message,
+			    "merged tag '%s'\n", tag->tag);
+	else if ((nth = which_parent(tag->tagged->sha1, commit)) < 0)
+		strbuf_addf(&verify_message, "tag %s names a non-parent %s\n",
+				    tag->tag, tag->tagged->sha1);
+	else
+		strbuf_addf(&verify_message,
+			    "parent #%d, tagged '%s'\n", nth + 1, tag->tag);
+	gpg_message_offset = verify_message.len;
+
+	payload_size = parse_signature(extra->value, extra->len);
+	if ((extra->len <= payload_size) ||
+	    (verify_signed_buffer(extra->value, payload_size,
+				  extra->value + payload_size,
+				  extra->len - payload_size,
+				  &verify_message) &&
+	     verify_message.len <= gpg_message_offset)) {
+		strbuf_addstr(&verify_message, "No signature\n");
+		status = -1;
+	}
+	else if (strstr(verify_message.buf + gpg_message_offset,
+			": Good signature from "))
+		status = 0;
+	else
+		status = -1;
+
+	show_sig_lines(opt, status, verify_message.buf);
+	strbuf_release(&verify_message);
+}
+
+static void show_mergetag(struct rev_info *opt, struct commit *commit)
+{
+	struct commit_extra_header *extra, *to_free;
+
+	to_free = read_commit_extra_headers(commit, NULL);
+	for (extra = to_free; extra; extra = extra->next) {
+		if (strcmp(extra->key, "mergetag"))
+			continue; /* not a merge tag */
+		show_one_mergetag(opt, extra, commit);
+	}
+	free_commit_extra_headers(to_free);
 }
 
 void show_log(struct rev_info *opt)
@@ -414,6 +549,8 @@ void show_log(struct rev_info *opt)
 		fputs(find_unique_abbrev(commit->object.sha1, abbrev_commit), stdout);
 		if (opt->print_parents)
 			show_parents(commit, abbrev_commit);
+		if (opt->children.name)
+			show_children(opt, commit, abbrev_commit);
 		show_decorations(opt, commit);
 		if (opt->graph && !graph_is_commit_finished(opt->graph)) {
 			putchar('\n');
@@ -473,6 +610,8 @@ void show_log(struct rev_info *opt)
 		      stdout);
 		if (opt->print_parents)
 			show_parents(commit, abbrev_commit);
+		if (opt->children.name)
+			show_children(opt, commit, abbrev_commit);
 		if (parent)
 			printf(" (from %s)",
 			       find_unique_abbrev(parent->object.sha1,
@@ -493,13 +632,17 @@ void show_log(struct rev_info *opt)
 			 * graph info here.
 			 */
 			show_reflog_message(opt->reflog_info,
-				    opt->commit_format == CMIT_FMT_ONELINE,
-				    opt->date_mode_explicit ?
-					opt->date_mode :
-					DATE_NORMAL);
+					    opt->commit_format == CMIT_FMT_ONELINE,
+					    opt->date_mode,
+					    opt->date_mode_explicit);
 			if (opt->commit_format == CMIT_FMT_ONELINE)
 				return;
 		}
+	}
+
+	if (opt->show_signature) {
+		show_signature(opt, commit);
+		show_mergetag(opt, commit);
 	}
 
 	if (!commit->buffer)
@@ -511,6 +654,7 @@ void show_log(struct rev_info *opt)
 	if (ctx.need_8bit_cte >= 0)
 		ctx.need_8bit_cte = has_non_ascii(opt->add_signoff);
 	ctx.date_mode = opt->date_mode;
+	ctx.date_mode_explicit = opt->date_mode_explicit;
 	ctx.abbrev = opt->diffopt.abbrev;
 	ctx.after_subject = extra_headers;
 	ctx.preserve_subject = opt->preserve_subject;
@@ -541,7 +685,7 @@ void show_log(struct rev_info *opt)
 	if (opt->use_terminator) {
 		if (!opt->missing_newline)
 			graph_show_padding(opt->graph);
-		putchar('\n');
+		putchar(opt->diffopt.line_termination);
 	}
 
 	strbuf_release(&msgbuf);
@@ -570,13 +714,14 @@ int log_tree_diff_flush(struct rev_info *opt)
 		    opt->verbose_header &&
 		    opt->commit_format != CMIT_FMT_ONELINE) {
 			int pch = DIFF_FORMAT_DIFFSTAT | DIFF_FORMAT_PATCH;
-			if ((pch & opt->diffopt.output_format) == pch)
-				printf("---");
 			if (opt->diffopt.output_prefix) {
 				struct strbuf *msg = NULL;
 				msg = opt->diffopt.output_prefix(&opt->diffopt,
 					opt->diffopt.output_prefix_data);
 				fwrite(msg->buf, msg->len, 1, stdout);
+			}
+			if ((pch & opt->diffopt.output_format) == pch) {
+				printf("---");
 			}
 			putchar('\n');
 		}
@@ -587,9 +732,7 @@ int log_tree_diff_flush(struct rev_info *opt)
 
 static int do_diff_combined(struct rev_info *opt, struct commit *commit)
 {
-	unsigned const char *sha1 = commit->object.sha1;
-
-	diff_tree_combined_merge(sha1, opt->dense_combined_merges, opt);
+	diff_tree_combined_merge(commit, opt->dense_combined_merges, opt);
 	return !opt->loginfo;
 }
 

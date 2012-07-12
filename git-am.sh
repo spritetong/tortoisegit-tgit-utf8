@@ -15,6 +15,7 @@ q,quiet         be quiet
 s,signoff       add a Signed-off-by line to the commit message
 u,utf8          recode into utf8 (default)
 k,keep          pass -k flag to git-mailinfo
+keep-non-patch  pass -b flag to git-mailinfo
 keep-cr         pass --keep-cr flag to git-mailsplit for mbox format
 no-keep-cr      do not pass --keep-cr flag to git-mailsplit independent of am.keepcr
 c,scissors      strip everything before a scissors line
@@ -23,6 +24,7 @@ ignore-space-change pass it through git-apply
 ignore-whitespace pass it through git-apply
 directory=      pass it through git-apply
 exclude=        pass it through git-apply
+include=        pass it through git-apply
 C=              pass it through git-apply
 p=              pass it through git-apply
 patch-format=   format the patch(es) are in
@@ -127,15 +129,24 @@ fall_back_3way () {
     mkdir "$dotest/patch-merge-tmp-dir"
 
     # First see if the patch records the index info that we can use.
-    git apply --build-fake-ancestor "$dotest/patch-merge-tmp-index" \
-	"$dotest/patch" &&
+    cmd="git apply $git_apply_opt --build-fake-ancestor" &&
+    cmd="$cmd "'"$dotest/patch-merge-tmp-index" "$dotest/patch"' &&
+    eval "$cmd" &&
     GIT_INDEX_FILE="$dotest/patch-merge-tmp-index" \
     git write-tree >"$dotest/patch-merge-base+" ||
     cannot_fallback "$(gettext "Repository lacks necessary blobs to fall back on 3-way merge.")"
 
     say Using index info to reconstruct a base tree...
-    if GIT_INDEX_FILE="$dotest/patch-merge-tmp-index" \
-	git apply --cached <"$dotest/patch"
+
+    cmd='GIT_INDEX_FILE="$dotest/patch-merge-tmp-index"'
+
+    if test -z "$GIT_QUIET"
+    then
+	eval "$cmd git diff-index --cached --diff-filter=AM --name-status HEAD"
+    fi
+
+    cmd="$cmd git apply --cached $git_apply_opt"' <"$dotest/patch"'
+    if eval "$cmd"
     then
 	mv "$dotest/patch-merge-base+" "$dotest/patch-merge-base"
 	mv "$dotest/patch-merge-tmp-index" "$dotest/patch-merge-index"
@@ -201,7 +212,7 @@ check_patch_format () {
 		l1=
 		while test -z "$l1"
 		do
-			read l1
+			read l1 || break
 		done
 		read l2
 		read l3
@@ -311,6 +322,40 @@ split_patches () {
 		this=
 		msgnum=
 		;;
+	hg)
+		this=0
+		for hg in "$@"
+		do
+			this=$(( $this + 1 ))
+			msgnum=$(printf "%0${prec}d" $this)
+			# hg stores changeset metadata in #-commented lines preceding
+			# the commit message and diff(s). The only metadata we care about
+			# are the User and Date (Node ID and Parent are hashes which are
+			# only relevant to the hg repository and thus not useful to us)
+			# Since we cannot guarantee that the commit message is in
+			# git-friendly format, we put no Subject: line and just consume
+			# all of the message as the body
+			perl -M'POSIX qw(strftime)' -ne 'BEGIN { $subject = 0 }
+				if ($subject) { print ; }
+				elsif (/^\# User /) { s/\# User/From:/ ; print ; }
+				elsif (/^\# Date /) {
+					my ($hashsign, $str, $time, $tz) = split ;
+					$tz = sprintf "%+05d", (0-$tz)/36;
+					print "Date: " .
+					      strftime("%a, %d %b %Y %H:%M:%S ",
+						       localtime($time))
+					      . "$tz\n";
+				} elsif (/^\# /) { next ; }
+				else {
+					print "\n", $_ ;
+					$subject = 1;
+				}
+			' <"$hg" >"$dotest/$msgnum" || clean_abort
+		done
+		echo "$this" >"$dotest/last"
+		this=
+		msgnum=
+		;;
 	*)
 		if test -n "$patch_format"
 		then
@@ -342,7 +387,9 @@ do
 	-i|--interactive)
 		interactive=t ;;
 	-b|--binary)
-		: ;;
+		echo >&2 "The $1 option has been a no-op for long time, and"
+		echo >&2 "it will be removed. Please do not use it anymore."
+		;;
 	-3|--3way)
 		threeway=t ;;
 	-s|--signoff)
@@ -353,6 +400,8 @@ do
 		utf8= ;;
 	-k|--keep)
 		keep=t ;;
+	--keep-non-patch)
+		keep=b ;;
 	-c|--scissors)
 		scissors=t ;;
 	--no-scissors)
@@ -370,7 +419,7 @@ do
 		;;
 	--resolvemsg)
 		shift; resolvemsg=$1 ;;
-	--whitespace|--directory|--exclude)
+	--whitespace|--directory|--exclude|--include)
 		git_apply_opt="$git_apply_opt $(sq "$1=$2")"; shift ;;
 	-C|-p)
 		git_apply_opt="$git_apply_opt $(sq "$1$2")"; shift ;;
@@ -496,7 +545,6 @@ else
 	echo "$sign" >"$dotest/sign"
 	echo "$utf8" >"$dotest/utf8"
 	echo "$keep" >"$dotest/keep"
-	echo "$keepcr" >"$dotest/keepcr"
 	echo "$scissors" >"$dotest/scissors"
 	echo "$no_inbody_headers" >"$dotest/no_inbody_headers"
 	echo "$GIT_QUIET" >"$dotest/quiet"
@@ -532,21 +580,24 @@ case "$resolved" in
 	fi
 esac
 
+# Now, decide what command line options we will give to the git
+# commands we invoke, based on the result of parsing command line
+# options and previous invocation state stored in $dotest/ files.
+
 if test "$(cat "$dotest/utf8")" = t
 then
 	utf8=-u
 else
 	utf8=-n
 fi
-if test "$(cat "$dotest/keep")" = t
-then
-	keep=-k
-fi
-case "$(cat "$dotest/keepcr")" in
+keep=$(cat "$dotest/keep")
+case "$keep" in
 t)
-	keepcr=--keep-cr ;;
-f)
-	keepcr=--no-keep-cr ;;
+	keep=-k ;;
+b)
+	keep=-b ;;
+*)
+	keep= ;;
 esac
 case "$(cat "$dotest/scissors")" in
 t)

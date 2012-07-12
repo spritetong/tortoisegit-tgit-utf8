@@ -73,6 +73,7 @@ struct rev_info {
 			tag_objects:1,
 			tree_objects:1,
 			blob_objects:1,
+			verify_objects:1,
 			edge_hint:1,
 			limited:1,
 			unpacked:1,
@@ -109,6 +110,7 @@ struct rev_info {
 			show_merge:1,
 			show_notes:1,
 			show_notes_given:1,
+			show_signature:1,
 			pretty_given:1,
 			abbrev_commit:1,
 			abbrev_commit_given:1,
@@ -117,6 +119,7 @@ struct rev_info {
 			date_mode_explicit:1,
 			preserve_subject:1;
 	unsigned int	disable_stdin:1;
+	unsigned int	leak_pending:1;
 
 	enum date_mode date_mode;
 
@@ -183,6 +186,7 @@ struct setup_revision_opt {
 	const char *def;
 	void (*tweak)(struct rev_info *, struct setup_revision_opt *);
 	const char *submodule;
+	int assume_dashdash;
 };
 
 extern void init_revisions(struct rev_info *revs, const char *prefix);
@@ -192,6 +196,7 @@ extern void parse_revision_opt(struct rev_info *revs, struct parse_opt_ctx_t *ct
 				 const char * const usagestr[]);
 extern int handle_revision_arg(const char *arg, struct rev_info *revs,int flags,int cant_be_filename);
 
+extern void reset_revision_walk(void);
 extern int prepare_revision_walk(struct rev_info *revs);
 extern struct commit *get_revision(struct rev_info *revs);
 extern char *get_revision_mark(const struct rev_info *revs, const struct commit *commit);
@@ -208,12 +213,15 @@ struct name_path {
 
 char *path_name(const struct name_path *path, const char *name);
 
+extern void show_object_with_name(FILE *, struct object *, const struct name_path *, const char *);
+
 extern void add_object(struct object *obj,
 		       struct object_array *p,
 		       struct name_path *path,
 		       const char *name);
 
 extern void add_pending_object(struct rev_info *revs, struct object *obj, const char *name);
+extern void add_pending_sha1(struct rev_info *revs, const char *name, const unsigned char *sha1, unsigned int flags);
 
 extern void add_head_to_pending(struct rev_info *);
 

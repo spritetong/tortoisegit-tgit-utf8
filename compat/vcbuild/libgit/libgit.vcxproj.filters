@@ -54,9 +54,6 @@
     <ClCompile Include="..\..\obstack.c">
       <Filter>compat</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\win32\sys\poll.c">
-      <Filter>compat</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\pread.c">
       <Filter>compat</Filter>
     </ClCompile>
@@ -756,6 +753,54 @@
     <ClCompile Include="..\..\..\builtin\write-tree.c">
       <Filter>BuildIn</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\win32\poll.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\strtoimax.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\terminal.c">
+      <Filter>compat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\builtin\column.c">
+      <Filter>BuildIn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\bulk-checkin.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\column.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\connected.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\credential.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\credential-cache.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\credential-cache--daemon.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\credential-store.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\gpg-interface.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\mergesort.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\prompt.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\sequencer.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\varint.c">
+      <Filter>git</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\msvc.h">
@@ -1018,6 +1063,45 @@
     </ClInclude>
     <ClInclude Include="..\..\..\xdiff\xutils.h">
       <Filter>xdiff</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\bulk-checkin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\column.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\connected.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\credential.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\fmt-merge-msg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\gpg-interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\mergesort.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\prompt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\sequencer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\unix-socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\varint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\win32\poll.h">
+      <Filter>compat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\terminal.h">
+      <Filter>compat</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

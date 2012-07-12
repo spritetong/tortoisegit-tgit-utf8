@@ -40,10 +40,14 @@ test -f "$GIT_DIR/MERGE_HEAD" && die_merge
 
 strategy_args= diffstat= no_commit= squash= no_ff= ff_only=
 log_arg= verbosity= progress= recurse_submodules=
-merge_args=
+merge_args= edit=
 curr_branch=$(git symbolic-ref -q HEAD)
 curr_branch_short="${curr_branch#refs/heads/}"
 rebase=$(git config --bool branch.$curr_branch_short.rebase)
+if test -z "$rebase"
+then
+	rebase=$(git config --bool pull.rebase)
+fi
 dry_run=
 while :
 do
@@ -66,6 +70,10 @@ do
 		no_commit=--no-commit ;;
 	--c|--co|--com|--comm|--commi|--commit)
 		no_commit=--commit ;;
+	-e|--edit)
+		edit=--edit ;;
+	--no-edit)
+		edit=--no-edit ;;
 	--sq|--squ|--squa|--squas|--squash)
 		squash=--squash ;;
 	--no-sq|--no-squ|--no-squa|--no-squas|--no-squash)
@@ -120,7 +128,7 @@ do
 	--d|--dr|--dry|--dry-|--dry-r|--dry-ru|--dry-run)
 		dry_run=--dry-run
 		;;
-	-h|--h|--he|--hel|--help|--help-|--help-a|--help-al|--help-all)
+	-h|--help-all)
 		usage
 		;;
 	*)
@@ -172,7 +180,7 @@ error_on_no_merge_candidates () {
 	elif [ -z "$curr_branch" -o -z "$upstream" ]; then
 		. git-parse-remote
 		error_on_missing_default_upstream "pull" $op_type $op_prep \
-			"git pull <repository> <refspec>"
+			"git pull <remote> <branch>"
 	else
 		echo "Your configuration specifies to $op_type $op_prep the ref '${upstream#refs/heads/}'"
 		echo "from the remote, but no such ref was fetched."
@@ -274,7 +282,7 @@ true)
 	eval="$eval --onto $merge_head ${oldremoteref:-$merge_head}"
 	;;
 *)
-	eval="git-merge $diffstat $no_commit $squash $no_ff $ff_only"
+	eval="git-merge $diffstat $no_commit $edit $squash $no_ff $ff_only"
 	eval="$eval  $log_arg $strategy_args $merge_args $verbosity $progress"
 	eval="$eval \"\$merge_name\" HEAD $merge_head"
 	;;

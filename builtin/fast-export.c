@@ -25,7 +25,7 @@ static const char *fast_export_usage[] = {
 
 static int progress;
 static enum { ABORT, VERBATIM, WARN, STRIP } signed_tag_mode = ABORT;
-static enum { ERROR, DROP, REWRITE } tag_of_filtered_mode = ABORT;
+static enum { ERROR, DROP, REWRITE } tag_of_filtered_mode = ERROR;
 static int fake_missing_tagger;
 static int use_done_feature;
 static int no_data;
@@ -51,7 +51,7 @@ static int parse_opt_tag_of_filtered_mode(const struct option *opt,
 					  const char *arg, int unset)
 {
 	if (unset || !strcmp(arg, "abort"))
-		tag_of_filtered_mode = ABORT;
+		tag_of_filtered_mode = ERROR;
 	else if (!strcmp(arg, "drop"))
 		tag_of_filtered_mode = DROP;
 	else if (!strcmp(arg, "rewrite"))
@@ -610,7 +610,7 @@ static void import_marks(char *input_file)
 			die ("Could not read blob %s", sha1_to_hex(sha1));
 
 		if (object->flags & SHOWN)
-			error("Object %s already has a mark", sha1);
+			error("Object %s already has a mark", sha1_to_hex(sha1));
 
 		mark_object(object, mark);
 		if (last_idnum < mark)
@@ -647,9 +647,7 @@ int cmd_fast_export(int argc, const char **argv, const char *prefix)
 			     "Output full tree for each commit"),
 		OPT_BOOLEAN(0, "use-done-feature", &use_done_feature,
 			     "Use the done feature to terminate the stream"),
-		{ OPTION_NEGBIT, 0, "data", &no_data, NULL,
-			"Skip output of blob data",
-			PARSE_OPT_NOARG | PARSE_OPT_NEGHELP, NULL, 1 },
+		OPT_BOOL(0, "no-data", &no_data, "Skip output of blob data"),
 		OPT_END()
 	};
 

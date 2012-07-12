@@ -40,6 +40,47 @@ char *path_name(const struct name_path *path, const char *name)
 	return n;
 }
 
+static int show_path_component_truncated(FILE *out, const char *name, int len)
+{
+	int cnt;
+	for (cnt = 0; cnt < len; cnt++) {
+		int ch = name[cnt];
+		if (!ch || ch == '\n')
+			return -1;
+		fputc(ch, out);
+	}
+	return len;
+}
+
+static int show_path_truncated(FILE *out, const struct name_path *path)
+{
+	int emitted, ours;
+
+	if (!path)
+		return 0;
+	emitted = show_path_truncated(out, path->up);
+	if (emitted < 0)
+		return emitted;
+	if (emitted)
+		fputc('/', out);
+	ours = show_path_component_truncated(out, path->elem, path->elem_len);
+	if (ours < 0)
+		return ours;
+	return ours || emitted;
+}
+
+void show_object_with_name(FILE *out, struct object *obj, const struct name_path *path, const char *component)
+{
+	struct name_path leaf;
+	leaf.up = (struct name_path *)path;
+	leaf.elem = component;
+	leaf.elem_len = strlen(component);
+
+	fprintf(out, "%s ", sha1_to_hex(obj->sha1));
+	show_path_truncated(out, &leaf);
+	fputc('\n', out);
+}
+
 void add_object(struct object *obj,
 		struct object_array *p,
 		struct name_path *path,
@@ -98,11 +139,32 @@ void mark_tree_uninteresting(struct tree *tree)
 
 void mark_parents_uninteresting(struct commit *commit)
 {
-	struct commit_list *parents = commit->parents;
+	struct commit_list *parents = NULL, *l;
+
+	for (l = commit->parents; l; l = l->next)
+		commit_list_insert(l->item, &parents);
 
 	while (parents) {
 		struct commit *commit = parents->item;
-		if (!(commit->object.flags & UNINTERESTING)) {
+		l = parents;
+		parents = parents->next;
+		free(l);
+
+		while (commit) {
+			/*
+			 * A missing commit is ok iff its parent is marked
+			 * uninteresting.
+			 *
+			 * We just mark such a thing parsed, so that when
+			 * it is popped next time around, we won't be trying
+			 * to parse it and get an error.
+			 */
+			if (!has_sha1_file(commit->object.sha1))
+				commit->object.parsed = 1;
+
+			if (commit->object.flags & UNINTERESTING)
+				break;
+
 			commit->object.flags |= UNINTERESTING;
 
 			/*
@@ -113,21 +175,13 @@ void mark_parents_uninteresting(struct commit *commit)
 			 * wasn't uninteresting), in which case we need
 			 * to mark its parents recursively too..
 			 */
-			if (commit->parents)
-				mark_parents_uninteresting(commit);
-		}
+			if (!commit->parents)
+				break;
 
-		/*
-		 * A missing commit is ok iff its parent is marked
-		 * uninteresting.
-		 *
-		 * We just mark such a thing parsed, so that when
-		 * it is popped next time around, we won't be trying
-		 * to parse it and get an error.
-		 */
-		if (!has_sha1_file(commit->object.sha1))
-			commit->object.parsed = 1;
-		parents = parents->next;
+			for (l = commit->parents->next; l; l = l->next)
+				commit_list_insert(l->item, &parents);
+			commit = commit->parents->item;
+		}
 	}
 }
 
@@ -183,6 +237,13 @@ static struct object *get_reference(struct rev_info *revs, const char *name, con
 	}
 	object->flags |= flags;
 	return object;
+}
+
+void add_pending_sha1(struct rev_info *revs, const char *name,
+		      const unsigned char *sha1, unsigned int flags)
+{
+	struct object *object = get_reference(revs, name, sha1, flags);
+	add_pending_object(revs, object, name);
 }
 
 static struct commit *handle_commit(struct rev_info *revs, struct object *object, const char *name)
@@ -368,7 +429,7 @@ static int rev_same_tree_as_empty(struct rev_info *revs, struct commit *commit)
 static void try_to_simplify_commit(struct rev_info *revs, struct commit *commit)
 {
 	struct commit_list **pp, *parent;
-	int tree_changed = 0, tree_same = 0;
+	int tree_changed = 0, tree_same = 0, nth_parent = 0;
 
 	/*
 	 * If we don't do pruning, everything is interesting
@@ -396,6 +457,14 @@ static void try_to_simplify_commit(struct rev_info *revs, struct commit *commit)
 	while ((parent = *pp) != NULL) {
 		struct commit *p = parent->item;
 
+		/*
+		 * Do not compare with later parents when we care only about
+		 * the first parent chain, in order to avoid derailing the
+		 * traversal to follow a side branch that brought everything
+		 * in the path we are limited to by the pathspec.
+		 */
+		if (revs->first_parent_only && nth_parent++)
+			break;
 		if (parse_commit(p) < 0)
 			die("cannot simplify commit %s (because of %s)",
 			    sha1_to_hex(commit->object.sha1),
@@ -856,7 +925,7 @@ static int handle_one_ref(const char *path, const unsigned char *sha1, int flag,
 	struct object *object = get_reference(cb->all_revs, path, sha1,
 					      cb->all_flags);
 	add_rev_cmdline(cb->all_revs, object, path, REV_CMD_REF, cb->all_flags);
-	add_pending_object(cb->all_revs, object, path);
+	add_pending_sha1(cb->all_revs, path, sha1, cb->all_flags);
 	return 0;
 }
 
@@ -1377,6 +1446,11 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->tree_objects = 1;
 		revs->blob_objects = 1;
 		revs->edge_hint = 1;
+	} else if (!strcmp(arg, "--verify-objects")) {
+		revs->tag_objects = 1;
+		revs->tree_objects = 1;
+		revs->blob_objects = 1;
+		revs->verify_objects = 1;
 	} else if (!strcmp(arg, "--unpacked")) {
 		revs->unpacked = 1;
 	} else if (!prefixcmp(arg, "--unpacked=")) {
@@ -1416,6 +1490,8 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->show_notes = 1;
 		revs->show_notes_given = 1;
 		revs->notes_opt.use_default_notes = 1;
+	} else if (!strcmp(arg, "--show-signature")) {
+		revs->show_signature = 1;
 	} else if (!prefixcmp(arg, "--show-notes=") ||
 		   !prefixcmp(arg, "--notes=")) {
 		struct strbuf buf = STRBUF_INIT;
@@ -1506,6 +1582,7 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->grep_filter.regflags |= REG_EXTENDED;
 	} else if (!strcmp(arg, "--regexp-ignore-case") || !strcmp(arg, "-i")) {
 		revs->grep_filter.regflags |= REG_ICASE;
+		DIFF_OPT_SET(&revs->diffopt, PICKAXE_IGNORE_CASE);
 	} else if (!strcmp(arg, "--fixed-strings") || !strcmp(arg, "-F")) {
 		revs->grep_filter.fixed = 1;
 	} else if (!strcmp(arg, "--all-match")) {
@@ -1638,17 +1715,21 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 		submodule = opt->submodule;
 
 	/* First, search for "--" */
-	seen_dashdash = 0;
-	for (i = 1; i < argc; i++) {
-		const char *arg = argv[i];
-		if (strcmp(arg, "--"))
-			continue;
-		argv[i] = NULL;
-		argc = i;
-		if (argv[i + 1])
-			append_prune_data(&prune_data, argv + i + 1);
+	if (opt && opt->assume_dashdash) {
 		seen_dashdash = 1;
-		break;
+	} else {
+		seen_dashdash = 0;
+		for (i = 1; i < argc; i++) {
+			const char *arg = argv[i];
+			if (strcmp(arg, "--"))
+				continue;
+			argv[i] = NULL;
+			argc = i;
+			if (argv[i + 1])
+				append_prune_data(&prune_data, argv + i + 1);
+			seen_dashdash = 1;
+			break;
+		}
 	}
 
 	/* Second, deal with arguments and options */
@@ -1985,10 +2066,16 @@ static void set_children(struct rev_info *revs)
 	}
 }
 
+void reset_revision_walk(void)
+{
+	clear_object_flags(SEEN | ADDED | SHOWN);
+}
+
 int prepare_revision_walk(struct rev_info *revs)
 {
 	int nr = revs->pending.nr;
 	struct object_array_entry *e, *list;
+	struct commit_list **next = &revs->commits;
 
 	e = list = revs->pending.objects;
 	revs->pending.nr = 0;
@@ -1999,12 +2086,14 @@ int prepare_revision_walk(struct rev_info *revs)
 		if (commit) {
 			if (!(commit->object.flags & SEEN)) {
 				commit->object.flags |= SEEN;
-				commit_list_insert_by_date(commit, &revs->commits);
+				next = commit_list_append(commit, next);
 			}
 		}
 		e++;
 	}
-	free(list);
+	commit_list_sort_by_date(&revs->commits);
+	if (!revs->leak_pending)
+		free(list);
 
 	if (revs->no_walk)
 		return 0;
@@ -2072,7 +2161,6 @@ static int commit_match(struct commit *commit, struct rev_info *opt)
 	if (!opt->grep_filter.pattern_list && !opt->grep_filter.header_list)
 		return 1;
 	return grep_buffer(&opt->grep_filter,
-			   NULL, /* we say nothing, not even filename */
 			   commit->buffer, strlen(commit->buffer));
 }
 

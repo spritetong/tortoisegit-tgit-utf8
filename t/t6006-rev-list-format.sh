@@ -188,23 +188,23 @@ test_expect_success 'empty email' '
 
 test_expect_success 'del LF before empty (1)' '
 	git show -s --pretty=format:"%s%n%-b%nThanks%n" HEAD^^ >actual &&
-	test $(wc -l <actual) = 2
+	test_line_count = 2 actual
 '
 
 test_expect_success 'del LF before empty (2)' '
 	git show -s --pretty=format:"%s%n%-b%nThanks%n" HEAD >actual &&
-	test $(wc -l <actual) = 6 &&
+	test_line_count = 6 actual &&
 	grep "^$" actual
 '
 
 test_expect_success 'add LF before non-empty (1)' '
 	git show -s --pretty=format:"%s%+b%nThanks%n" HEAD^^ >actual &&
-	test $(wc -l <actual) = 2
+	test_line_count = 2 actual
 '
 
 test_expect_success 'add LF before non-empty (2)' '
 	git show -s --pretty=format:"%s%+b%nThanks%n" HEAD >actual &&
-	test $(wc -l <actual) = 6 &&
+	test_line_count = 6 actual &&
 	grep "^$" actual
 '
 
@@ -267,13 +267,27 @@ test_expect_success '%gd shortens ref name' '
 	test_cmp expect.gd-short actual.gd-short
 '
 
+test_expect_success 'reflog identity' '
+	echo "C O Mitter:committer@example.com" >expect &&
+	git log -g -1 --format="%gn:%ge" >actual &&
+	test_cmp expect actual
+'
+
 test_expect_success 'oneline with empty message' '
 	git commit -m "dummy" --allow-empty &&
 	git commit -m "dummy" --allow-empty &&
 	git filter-branch --msg-filter "sed -e s/dummy//" HEAD^^.. &&
 	git rev-list --oneline HEAD >test.txt &&
-	test $(git rev-list --oneline HEAD | wc -l) -eq 5 &&
-	test $(git rev-list --oneline --graph HEAD | wc -l) -eq 5
+	test_line_count = 5 test.txt &&
+	git rev-list --oneline --graph HEAD >testg.txt &&
+	test_line_count = 5 testg.txt
+'
+
+test_expect_success 'single-character name is parsed correctly' '
+	git commit --author="a <a@example.com>" --allow-empty -m foo &&
+	echo "a <a@example.com>" >expect &&
+	git log -1 --format="%an <%ae>" >actual &&
+	test_cmp expect actual
 '
 
 test_done

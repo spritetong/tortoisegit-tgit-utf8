@@ -722,13 +722,8 @@ static struct branch *new_branch(const char *name)
 
 	if (b)
 		die("Invalid attempt to create duplicate branch: %s", name);
-	switch (check_ref_format(name)) {
-	case 0: break; /* its valid */
-	case CHECK_REF_FORMAT_ONELEVEL:
-		break; /* valid, but too few '/', allow anyway */
-	default:
+	if (check_refname_format(name, REFNAME_ALLOW_ONELEVEL))
 		die("Branch name doesn't conform to GIT standards: %s", name);
-	}
 
 	b = pool_calloc(1, sizeof(struct branch));
 	b->name = pool_strdup(name);
@@ -860,15 +855,15 @@ static struct tree_content *dup_tree_content(struct tree_content *s)
 
 static void start_packfile(void)
 {
-	static char tmpfile[PATH_MAX];
+	static char tmp_file[PATH_MAX];
 	struct packed_git *p;
 	struct pack_header hdr;
 	int pack_fd;
 
-	pack_fd = odb_mkstemp(tmpfile, sizeof(tmpfile),
+	pack_fd = odb_mkstemp(tmp_file, sizeof(tmp_file),
 			      "pack/tmp_pack_XXXXXX");
-	p = xcalloc(1, sizeof(*p) + strlen(tmpfile) + 2);
-	strcpy(p->pack_name, tmpfile);
+	p = xcalloc(1, sizeof(*p) + strlen(tmp_file) + 2);
+	strcpy(p->pack_name, tmp_file);
 	p->pack_fd = pack_fd;
 	p->do_not_close = 1;
 	pack_file = sha1fd(pack_fd, p->pack_name);
@@ -1148,17 +1143,11 @@ static int store_object(
 	return 0;
 }
 
-static void truncate_pack(off_t to, git_SHA_CTX *ctx)
+static void truncate_pack(struct sha1file_checkpoint *checkpoint)
 {
-	if (ftruncate(pack_data->pack_fd, to)
-	 || lseek(pack_data->pack_fd, to, SEEK_SET) != to)
+	if (sha1file_truncate(pack_file, checkpoint))
 		die_errno("cannot truncate pack to skip duplicate");
-	pack_size = to;
-
-	/* yes this is a layering violation */
-	pack_file->total = to;
-	pack_file->offset = 0;
-	pack_file->ctx = *ctx;
+	pack_size = checkpoint->offset;
 }
 
 static void stream_blob(uintmax_t len, unsigned char *sha1out, uintmax_t mark)
@@ -1171,8 +1160,8 @@ static void stream_blob(uintmax_t len, unsigned char *sha1out, uintmax_t mark)
 	unsigned long hdrlen;
 	off_t offset;
 	git_SHA_CTX c;
-	git_SHA_CTX pack_file_ctx;
 	git_zstream s;
+	struct sha1file_checkpoint checkpoint;
 	int status = Z_OK;
 
 	/* Determine if we should auto-checkpoint. */
@@ -1180,11 +1169,8 @@ static void stream_blob(uintmax_t len, unsigned char *sha1out, uintmax_t mark)
 		|| (pack_size + 60 + len) < pack_size)
 		cycle_packfile();
 
-	offset = pack_size;
-
-	/* preserve the pack_file SHA1 ctx in case we have to truncate later */
-	sha1flush(pack_file);
-	pack_file_ctx = pack_file->ctx;
+	sha1file_checkpoint(pack_file, &checkpoint);
+	offset = checkpoint.offset;
 
 	hdrlen = snprintf((char *)out_buf, out_sz, "blob %" PRIuMAX, len) + 1;
 	if (out_sz <= hdrlen)
@@ -1250,14 +1236,14 @@ static void stream_blob(uintmax_t len, unsigned char *sha1out, uintmax_t mark)
 
 	if (e->idx.offset) {
 		duplicate_count_by_type[OBJ_BLOB]++;
-		truncate_pack(offset, &pack_file_ctx);
+		truncate_pack(&checkpoint);
 
 	} else if (find_sha1_pack(sha1, packed_git)) {
 		e->type = OBJ_BLOB;
 		e->pack_id = MAX_PACK_ID;
 		e->idx.offset = 1; /* just not zero! */
 		duplicate_count_by_type[OBJ_BLOB]++;
-		truncate_pack(offset, &pack_file_ctx);
+		truncate_pack(&checkpoint);
 
 	} else {
 		e->depth = 0;
@@ -1655,6 +1641,8 @@ static int tree_content_get(
 		n = slash1 - p;
 	else
 		n = strlen(p);
+	if (!n)
+		die("Empty path component found in input");
 
 	if (!root->tree)
 		load_tree(root);
@@ -2178,6 +2166,11 @@ static uintmax_t do_change_note_fanout(
 
 		if (tmp_hex_sha1_len == 40 && !get_sha1_hex(hex_sha1, sha1)) {
 			/* This is a note entry */
+			if (fanout == 0xff) {
+				/* Counting mode, no rename */
+				num_notes++;
+				continue;
+			}
 			construct_path_with_fanout(hex_sha1, fanout, realpath);
 			if (!strcmp(fullpath, realpath)) {
 				/* Note entry is in correct location */
@@ -2214,6 +2207,59 @@ static uintmax_t change_note_fanout(struct tree_entry *root,
 	return do_change_note_fanout(root, root, hex_sha1, 0, path, 0, fanout);
 }
 
+/*
+ * Given a pointer into a string, parse a mark reference:
+ *
+ *   idnum ::= ':' bigint;
+ *
+ * Return the first character after the value in *endptr.
+ *
+ * Complain if the following character is not what is expected,
+ * either a space or end of the string.
+ */
+static uintmax_t parse_mark_ref(const char *p, char **endptr)
+{
+	uintmax_t mark;
+
+	assert(*p == ':');
+	p++;
+	mark = strtoumax(p, endptr, 10);
+	if (*endptr == p)
+		die("No value after ':' in mark: %s", command_buf.buf);
+	return mark;
+}
+
+/*
+ * Parse the mark reference, and complain if this is not the end of
+ * the string.
+ */
+static uintmax_t parse_mark_ref_eol(const char *p)
+{
+	char *end;
+	uintmax_t mark;
+
+	mark = parse_mark_ref(p, &end);
+	if (*end != '\0')
+		die("Garbage after mark: %s", command_buf.buf);
+	return mark;
+}
+
+/*
+ * Parse the mark reference, demanding a trailing space.  Return a
+ * pointer to the space.
+ */
+static uintmax_t parse_mark_ref_space(const char **p)
+{
+	uintmax_t mark;
+	char *end;
+
+	mark = parse_mark_ref(*p, &end);
+	if (*end != ' ')
+		die("Missing space after mark: %s", command_buf.buf);
+	*p = end;
+	return mark;
+}
+
 static void file_change_m(struct branch *b)
 {
 	const char *p = command_buf.buf + 2;
@@ -2242,21 +2288,21 @@ static void file_change_m(struct branch *b)
 	}
 
 	if (*p == ':') {
-		char *x;
-		oe = find_mark(strtoumax(p + 1, &x, 10));
+		oe = find_mark(parse_mark_ref_space(&p));
 		hashcpy(sha1, oe->idx.sha1);
-		p = x;
-	} else if (!prefixcmp(p, "inline")) {
+	} else if (!prefixcmp(p, "inline ")) {
 		inline_data = 1;
-		p += 6;
+		p += strlen("inline");  /* advance to space */
 	} else {
 		if (get_sha1_hex(p, sha1))
-			die("Invalid SHA1: %s", command_buf.buf);
+			die("Invalid dataref: %s", command_buf.buf);
 		oe = find_object(sha1);
 		p += 40;
+		if (*p != ' ')
+			die("Missing space after SHA1: %s", command_buf.buf);
 	}
-	if (*p++ != ' ')
-		die("Missing space after SHA1: %s", command_buf.buf);
+	assert(*p == ' ');
+	p++;  /* skip space */
 
 	strbuf_reset(&uq);
 	if (!unquote_c_style(&uq, p, &endp)) {
@@ -2384,7 +2430,7 @@ static void file_change_cr(struct branch *b, int rename)
 		leaf.tree);
 }
 
-static void note_change_n(struct branch *b, unsigned char old_fanout)
+static void note_change_n(struct branch *b, unsigned char *old_fanout)
 {
 	const char *p = command_buf.buf + 2;
 	static struct strbuf uq = STRBUF_INIT;
@@ -2395,30 +2441,49 @@ static void note_change_n(struct branch *b, unsigned char old_fanout)
 	uint16_t inline_data = 0;
 	unsigned char new_fanout;
 
+	/*
+	 * When loading a branch, we don't traverse its tree to count the real
+	 * number of notes (too expensive to do this for all non-note refs).
+	 * This means that recently loaded notes refs might incorrectly have
+	 * b->num_notes == 0, and consequently, old_fanout might be wrong.
+	 *
+	 * Fix this by traversing the tree and counting the number of notes
+	 * when b->num_notes == 0. If the notes tree is truly empty, the
+	 * calculation should not take long.
+	 */
+	if (b->num_notes == 0 && *old_fanout == 0) {
+		/* Invoke change_note_fanout() in "counting mode". */
+		b->num_notes = change_note_fanout(&b->branch_tree, 0xff);
+		*old_fanout = convert_num_notes_to_fanout(b->num_notes);
+	}
+
+	/* Now parse the notemodify command. */
 	/* <dataref> or 'inline' */
 	if (*p == ':') {
-		char *x;
-		oe = find_mark(strtoumax(p + 1, &x, 10));
+		oe = find_mark(parse_mark_ref_space(&p));
 		hashcpy(sha1, oe->idx.sha1);
-		p = x;
-	} else if (!prefixcmp(p, "inline")) {
+	} else if (!prefixcmp(p, "inline ")) {
 		inline_data = 1;
-		p += 6;
+		p += strlen("inline");  /* advance to space */
 	} else {
 		if (get_sha1_hex(p, sha1))
-			die("Invalid SHA1: %s", command_buf.buf);
+			die("Invalid dataref: %s", command_buf.buf);
 		oe = find_object(sha1);
 		p += 40;
+		if (*p != ' ')
+			die("Missing space after SHA1: %s", command_buf.buf);
 	}
-	if (*p++ != ' ')
-		die("Missing space after SHA1: %s", command_buf.buf);
+	assert(*p == ' ');
+	p++;  /* skip space */
 
 	/* <committish> */
 	s = lookup_branch(p);
 	if (s) {
+		if (is_null_sha1(s->sha1))
+			die("Can't add a note on empty branch.");
 		hashcpy(commit_sha1, s->sha1);
 	} else if (*p == ':') {
-		uintmax_t commit_mark = strtoumax(p + 1, NULL, 10);
+		uintmax_t commit_mark = parse_mark_ref_eol(p);
 		struct object_entry *commit_oe = find_mark(commit_mark);
 		if (commit_oe->type != OBJ_COMMIT)
 			die("Mark :%" PRIuMAX " not a commit", commit_mark);
@@ -2453,7 +2518,7 @@ static void note_change_n(struct branch *b, unsigned char old_fanout)
 			    typename(type), command_buf.buf);
 	}
 
-	construct_path_with_fanout(sha1_to_hex(commit_sha1), old_fanout, path);
+	construct_path_with_fanout(sha1_to_hex(commit_sha1), *old_fanout, path);
 	if (tree_content_remove(&b->branch_tree, path, NULL))
 		b->num_notes--;
 
@@ -2525,7 +2590,7 @@ static int parse_from(struct branch *b)
 		hashcpy(b->branch_tree.versions[0].sha1, t);
 		hashcpy(b->branch_tree.versions[1].sha1, t);
 	} else if (*from == ':') {
-		uintmax_t idnum = strtoumax(from + 1, NULL, 10);
+		uintmax_t idnum = parse_mark_ref_eol(from);
 		struct object_entry *oe = find_mark(idnum);
 		if (oe->type != OBJ_COMMIT)
 			die("Mark :%" PRIuMAX " not a commit", idnum);
@@ -2560,7 +2625,7 @@ static struct hash_list *parse_merge(unsigned int *count)
 		if (s)
 			hashcpy(n->sha1, s->sha1);
 		else if (*from == ':') {
-			uintmax_t idnum = strtoumax(from + 1, NULL, 10);
+			uintmax_t idnum = parse_mark_ref_eol(from);
 			struct object_entry *oe = find_mark(idnum);
 			if (oe->type != OBJ_COMMIT)
 				die("Mark :%" PRIuMAX " not a commit", idnum);
@@ -2640,7 +2705,7 @@ static void parse_new_commit(void)
 		else if (!prefixcmp(command_buf.buf, "C "))
 			file_change_cr(b, 0);
 		else if (!prefixcmp(command_buf.buf, "N "))
-			note_change_n(b, prev_fanout);
+			note_change_n(b, &prev_fanout);
 		else if (!strcmp("deleteall", command_buf.buf))
 			file_change_deleteall(b);
 		else if (!prefixcmp(command_buf.buf, "ls "))
@@ -2702,7 +2767,7 @@ static void parse_new_tag(void)
 	/* Obtain the new tag name from the rest of our command */
 	sp = strchr(command_buf.buf, ' ') + 1;
 	t = pool_alloc(sizeof(struct tag));
-	t->next_tag = NULL;
+	memset(t, 0, sizeof(struct tag));
 	t->name = pool_strdup(sp);
 	if (last_tag)
 		last_tag->next_tag = t;
@@ -2717,11 +2782,13 @@ static void parse_new_tag(void)
 	from = strchr(command_buf.buf, ' ') + 1;
 	s = lookup_branch(from);
 	if (s) {
+		if (is_null_sha1(s->sha1))
+			die("Can't tag an empty branch.");
 		hashcpy(sha1, s->sha1);
 		type = OBJ_COMMIT;
 	} else if (*from == ':') {
 		struct object_entry *oe;
-		from_mark = strtoumax(from + 1, NULL, 10);
+		from_mark = parse_mark_ref_eol(from);
 		oe = find_mark(from_mark);
 		type = oe->type;
 		hashcpy(sha1, oe->idx.sha1);
@@ -2853,18 +2920,13 @@ static void parse_cat_blob(void)
 	/* cat-blob SP <object> LF */
 	p = command_buf.buf + strlen("cat-blob ");
 	if (*p == ':') {
-		char *x;
-		oe = find_mark(strtoumax(p + 1, &x, 10));
-		if (x == p + 1)
-			die("Invalid mark: %s", command_buf.buf);
+		oe = find_mark(parse_mark_ref_eol(p));
 		if (!oe)
 			die("Unknown mark: %s", command_buf.buf);
-		if (*x)
-			die("Garbage after mark: %s", command_buf.buf);
 		hashcpy(sha1, oe->idx.sha1);
 	} else {
 		if (get_sha1_hex(p, sha1))
-			die("Invalid SHA1: %s", command_buf.buf);
+			die("Invalid dataref: %s", command_buf.buf);
 		if (p[40])
 			die("Garbage after SHA1: %s", command_buf.buf);
 		oe = find_object(sha1);
@@ -2930,17 +2992,13 @@ static struct object_entry *parse_treeish_dataref(const char **p)
 	struct object_entry *e;
 
 	if (**p == ':') {	/* <mark> */
-		char *endptr;
-		e = find_mark(strtoumax(*p + 1, &endptr, 10));
-		if (endptr == *p + 1)
-			die("Invalid mark: %s", command_buf.buf);
+		e = find_mark(parse_mark_ref_space(p));
 		if (!e)
 			die("Unknown mark: %s", command_buf.buf);
-		*p = endptr;
 		hashcpy(sha1, e->idx.sha1);
 	} else {	/* <sha1> */
 		if (get_sha1_hex(*p, sha1))
-			die("Invalid SHA1: %s", command_buf.buf);
+			die("Invalid dataref: %s", command_buf.buf);
 		e = find_object(sha1);
 		*p += 40;
 	}
@@ -3016,6 +3074,8 @@ static void parse_ls(struct branch *b)
 		store_tree(&leaf);
 
 	print_ls(leaf.versions[1].mode, leaf.versions[1].sha1, p);
+	if (leaf.tree)
+		release_tree_content_recursive(leaf.tree);
 	if (!b || root != &b->branch_tree)
 		release_tree_entry(root);
 }
@@ -3292,6 +3352,8 @@ int main(int argc, const char **argv)
 	unsigned int i;
 
 	git_extract_argv0_path(argv[0]);
+
+	git_setup_gettext();
 
 	if (argc == 2 && !strcmp(argv[1], "-h"))
 		usage(fast_import_usage);

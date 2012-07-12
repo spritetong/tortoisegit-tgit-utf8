@@ -90,7 +90,7 @@ $LONG_USAGE"
 	fi
 
 	case "$1" in
-		-h|--h|--he|--hel|--help)
+		-h)
 		echo "$LONG_USAGE"
 		exit
 	esac
@@ -200,7 +200,7 @@ get_author_ident_from_commit () {
 		s/.*/GIT_AUTHOR_EMAIL='\''&'\''/p
 
 		g
-		s/^author [^<]* <[^>]*> \(.*\)$/\1/
+		s/^author [^<]* <[^>]*> \(.*\)$/@\1/
 		s/.*/GIT_AUTHOR_DATE='\''&'\''/p
 
 		q
@@ -217,6 +217,39 @@ get_author_ident_from_commit () {
 clear_local_git_env() {
 	unset $(git rev-parse --local-env-vars)
 }
+
+
+# Platform specific tweaks to work around some commands
+case $(uname -s) in
+*MINGW*)
+	# Windows has its own (incompatible) sort and find
+	sort () {
+		/usr/bin/sort "$@"
+	}
+	find () {
+		/usr/bin/find "$@"
+	}
+	# git sees Windows-style pwd
+	pwd () {
+		builtin pwd -W
+	}
+	is_absolute_path () {
+		case "$1" in
+		[/\\]* | [A-Za-z]:*)
+			return 0 ;;
+		esac
+		return 1
+	}
+	;;
+*)
+	is_absolute_path () {
+		case "$1" in
+		/*)
+			return 0 ;;
+		esac
+		return 1
+	}
+esac
 
 # Make sure we are in a valid repository of a vintage we understand,
 # if we require to be in a git repository.
@@ -237,31 +270,3 @@ then
 	}
 	: ${GIT_OBJECT_DIRECTORY="$GIT_DIR/objects"}
 fi
-
-# Fix some commands on Windows
-case $(uname -s) in
-*MINGW*)
-	# Windows has its own (incompatible) sort and find
-	sort () {
-		/usr/bin/sort "$@"
-	}
-	find () {
-		/usr/bin/find "$@"
-	}
-	is_absolute_path () {
-		case "$1" in
-		[/\\]* | [A-Za-z]:*)
-			return 0 ;;
-		esac
-		return 1
-	}
-	;;
-*)
-	is_absolute_path () {
-		case "$1" in
-		/*)
-			return 0 ;;
-		esac
-		return 1
-	}
-esac

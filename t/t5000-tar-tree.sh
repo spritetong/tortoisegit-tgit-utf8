@@ -31,6 +31,26 @@ GUNZIP=${GUNZIP:-gzip -d}
 
 SUBSTFORMAT=%H%n
 
+check_zip() {
+	zipfile=$1.zip
+	listfile=$1.lst
+	dir=$1
+	dir_with_prefix=$dir/$2
+
+	test_expect_success UNZIP " extract ZIP archive" "
+		(mkdir $dir && cd $dir && $UNZIP ../$zipfile)
+	"
+
+	test_expect_success UNZIP " validate filenames" "
+		(cd ${dir_with_prefix}a && find .) | sort >$listfile &&
+		test_cmp a.lst $listfile
+	"
+
+	test_expect_success UNZIP " validate file contents" "
+		diff -r a ${dir_with_prefix}a
+	"
+}
+
 test_expect_success \
     'populate workdir' \
     'mkdir a b c &&
@@ -84,6 +104,12 @@ test_expect_success \
     'git archive vs. git tar-tree' \
     'test_cmp b.tar b2.tar'
 
+test_expect_success 'git archive on large files' '
+    test_config core.bigfilethreshold 1 &&
+    git archive HEAD >b3.tar &&
+    test_cmp b.tar b3.tar
+'
+
 test_expect_success \
     'git archive in a bare repo' \
     '(cd bare.git && git archive HEAD) >b3.tar'
@@ -96,7 +122,7 @@ test_expect_success 'git archive with --output' \
     'git archive --output=b4.tar HEAD &&
     test_cmp b.tar b4.tar'
 
-test_expect_success NOT_MINGW 'git archive --remote' \
+test_expect_success 'git archive --remote' \
     'git archive --remote=. HEAD >b5.tar &&
     test_cmp b.tar b5.tar'
 
@@ -175,9 +201,18 @@ test_expect_success \
       test_cmp a/substfile2 g/prefix/a/substfile2
 '
 
+$UNZIP -v >/dev/null 2>&1
+if [ $? -eq 127 ]; then
+	say "Skipping ZIP tests, because unzip was not found"
+else
+	test_set_prereq UNZIP
+fi
+
 test_expect_success \
     'git archive --format=zip' \
     'git archive --format=zip HEAD >d.zip'
+
+check_zip d
 
 test_expect_success \
     'git archive --format=zip in a bare repo' \
@@ -201,46 +236,37 @@ test_expect_success 'git archive with --output, override inferred format' '
 	test_cmp b.tar d4.zip
 '
 
-$UNZIP -v >/dev/null 2>&1
-if [ $? -eq 127 ]; then
-	say "Skipping ZIP tests, because unzip was not found"
-else
-	test_set_prereq UNZIP
-fi
-
-test_expect_success UNZIP \
-    'extract ZIP archive' \
-    '(mkdir d && cd d && $UNZIP ../d.zip)'
-
-test_expect_success UNZIP \
-    'validate filenames' \
-    '(cd d/a && find .) | sort >d.lst &&
-     test_cmp a.lst d.lst'
-
-test_expect_success UNZIP \
-    'validate file contents' \
-    'diff -r a d/a'
-
 test_expect_success \
     'git archive --format=zip with prefix' \
     'git archive --format=zip --prefix=prefix/ HEAD >e.zip'
 
-test_expect_success UNZIP \
-    'extract ZIP archive with prefix' \
-    '(mkdir e && cd e && $UNZIP ../e.zip)'
+check_zip e prefix/
 
-test_expect_success UNZIP \
-    'validate filenames with prefix' \
-    '(cd e/prefix/a && find .) | sort >e.lst &&
-     test_cmp a.lst e.lst'
+test_expect_success 'git archive -0 --format=zip on large files' '
+	test_config core.bigfilethreshold 1 &&
+	git archive -0 --format=zip HEAD >large.zip
+'
 
-test_expect_success UNZIP \
-    'validate file contents with prefix' \
-    'diff -r a e/prefix/a'
+check_zip large
+
+test_expect_success 'git archive --format=zip on large files' '
+	test_config core.bigfilethreshold 1 &&
+	git archive --format=zip HEAD >large-compressed.zip
+'
+
+check_zip large-compressed
 
 test_expect_success \
     'git archive --list outside of a git repo' \
     'GIT_DIR=some/non-existing/directory git archive --list'
+
+test_expect_success 'clients cannot access unreachable commits' '
+	test_commit unreachable &&
+	sha1=`git rev-parse HEAD` &&
+	git reset --hard HEAD^ &&
+	git archive $sha1 >remote.tar &&
+	test_must_fail git archive --remote=. $sha1 >remote.tar
+'
 
 test_expect_success 'git-archive --prefix=olde-' '
 	git archive --prefix=olde- >h.tar HEAD &&
@@ -266,7 +292,7 @@ test_expect_success 'archive --list mentions user filter' '
 	grep "^bar\$" output
 '
 
-test_expect_success NOT_MINGW 'archive --list shows only enabled remote filters' '
+test_expect_success 'archive --list shows only enabled remote filters' '
 	git archive --list --remote=. >output &&
 	! grep "^tar\.foo\$" output &&
 	grep "^bar\$" output
@@ -298,7 +324,7 @@ test_expect_success 'extension matching requires dot' '
 	test_cmp b.tar config-implicittar.foo
 '
 
-test_expect_success NOT_MINGW 'only enabled filters are available remotely' '
+test_expect_success 'only enabled filters are available remotely' '
 	test_must_fail git archive --remote=. --format=tar.foo HEAD \
 		>remote.tar.foo &&
 	git archive --remote=. --format=bar >remote.bar HEAD &&
@@ -341,12 +367,12 @@ test_expect_success GZIP,GUNZIP 'extract tgz file' '
 	test_cmp b.tar j.tar
 '
 
-test_expect_success GZIP,NOT_MINGW 'remote tar.gz is allowed by default' '
+test_expect_success GZIP 'remote tar.gz is allowed by default' '
 	git archive --remote=. --format=tar.gz HEAD >remote.tar.gz &&
 	test_cmp j.tgz remote.tar.gz
 '
 
-test_expect_success GZIP,NOT_MINGW 'remote tar.gz can be disabled' '
+test_expect_success GZIP 'remote tar.gz can be disabled' '
 	git config tar.tar.gz.remote false &&
 	test_must_fail git archive --remote=. --format=tar.gz HEAD \
 		>remote.tar.gz

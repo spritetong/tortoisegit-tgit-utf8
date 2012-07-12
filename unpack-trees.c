@@ -102,21 +102,28 @@ void setup_unpack_trees_porcelain(struct unpack_trees_options *opts,
 		opts->unpack_rejects[i].strdup_strings = 1;
 }
 
+static void do_add_entry(struct unpack_trees_options *o, struct cache_entry *ce,
+			 unsigned int set, unsigned int clear)
+{
+	clear |= CE_HASHED | CE_UNHASHED;
+
+	if (set & CE_REMOVE)
+		set |= CE_WT_REMOVE;
+
+	ce->next = NULL;
+	ce->ce_flags = (ce->ce_flags & ~clear) | set;
+	add_index_entry(&o->result, ce,
+			ADD_CACHE_OK_TO_ADD | ADD_CACHE_OK_TO_REPLACE);
+}
+
 static void add_entry(struct unpack_trees_options *o, struct cache_entry *ce,
 	unsigned int set, unsigned int clear)
 {
 	unsigned int size = ce_size(ce);
 	struct cache_entry *new = xmalloc(size);
 
-	clear |= CE_HASHED | CE_UNHASHED;
-
-	if (set & CE_REMOVE)
-		set |= CE_WT_REMOVE;
-
 	memcpy(new, ce, size);
-	new->next = NULL;
-	new->ce_flags = (new->ce_flags & ~clear) | set;
-	add_index_entry(&o->result, new, ADD_CACHE_OK_TO_ADD|ADD_CACHE_OK_TO_REPLACE);
+	do_add_entry(o, new, set, clear);
 }
 
 /*
@@ -446,7 +453,7 @@ static int traverse_trees_recursive(int n, unsigned long dirmask,
 	newinfo.prev = info;
 	newinfo.pathspec = info->pathspec;
 	newinfo.name = *p;
-	newinfo.pathlen += tree_entry_len(p->path, p->sha1) + 1;
+	newinfo.pathlen += tree_entry_len(p) + 1;
 	newinfo.conflicts |= df_conflicts;
 
 	for (i = 0; i < n; i++, dirmask >>= 1) {
@@ -495,7 +502,7 @@ static int do_compare_entry(const struct cache_entry *ce, const struct traverse_
 	ce_len -= pathlen;
 	ce_name = ce->name + pathlen;
 
-	len = tree_entry_len(n->path, n->sha1);
+	len = tree_entry_len(n);
 	return df_name_compare(ce_name, ce_len, S_IFREG, n->path, len, n->mode);
 }
 
@@ -587,7 +594,7 @@ static int unpack_nondirectories(int n, unsigned long mask,
 
 	for (i = 0; i < n; i++)
 		if (src[i] && src[i] != o->df_conflict_entry)
-			add_entry(o, src[i], 0, 0);
+			do_add_entry(o, src[i], 0, 0);
 	return 0;
 }
 
@@ -626,7 +633,7 @@ static int find_cache_pos(struct traverse_info *info,
 	struct unpack_trees_options *o = info->data;
 	struct index_state *index = o->src_index;
 	int pfxlen = info->pathlen;
-	int p_len = tree_entry_len(p->path, p->sha1);
+	int p_len = tree_entry_len(p);
 
 	for (pos = o->cache_bottom; pos < index->cache_nr; pos++) {
 		struct cache_entry *ce = index->cache[pos];
@@ -772,7 +779,7 @@ static int unpack_callback(int n, unsigned long mask, unsigned long dirmask, str
 	if (unpack_nondirectories(n, mask, dirmask, src, names, info) < 0)
 		return -1;
 
-	if (src[0]) {
+	if (o->merge && src[0]) {
 		if (ce_stage(src[0]))
 			mark_ce_used_same_name(src[0], o);
 		else
@@ -1020,6 +1027,7 @@ int unpack_trees(unsigned len, struct tree_desc *t, struct unpack_trees_options 
 	o->result.initialized = 1;
 	o->result.timestamp.sec = o->src_index->timestamp.sec;
 	o->result.timestamp.nsec = o->src_index->timestamp.nsec;
+	o->result.version = o->src_index->version;
 	o->merge_size = len;
 	mark_all_ce_unused(o->src_index);
 
@@ -1091,6 +1099,7 @@ int unpack_trees(unsigned len, struct tree_desc *t, struct unpack_trees_options 
 		 */
 		mark_new_skip_worktree(o->el, &o->result, CE_ADDED, CE_SKIP_WORKTREE | CE_NEW_SKIP_WORKTREE);
 
+		ret = 0;
 		for (i = 0; i < o->result.cache_nr; i++) {
 			struct cache_entry *ce = o->result.cache[i];
 
@@ -1103,19 +1112,30 @@ int unpack_trees(unsigned len, struct tree_desc *t, struct unpack_trees_options 
 			 * correct CE_NEW_SKIP_WORKTREE
 			 */
 			if (ce->ce_flags & CE_ADDED &&
-			    verify_absent(ce, ERROR_WOULD_LOSE_UNTRACKED_OVERWRITTEN, o))
-					return -1;
+			    verify_absent(ce, ERROR_WOULD_LOSE_UNTRACKED_OVERWRITTEN, o)) {
+				if (!o->show_all_errors)
+					goto return_failed;
+				ret = -1;
+			}
 
 			if (apply_sparse_checkout(ce, o)) {
+				if (!o->show_all_errors)
+					goto return_failed;
 				ret = -1;
-				goto done;
 			}
 			if (!ce_skip_worktree(ce))
 				empty_worktree = 0;
 
 		}
+		if (ret < 0)
+			goto return_failed;
+		/*
+		 * Sparse checkout is meant to narrow down checkout area
+		 * but it does not make sense to narrow down to empty working
+		 * tree. This is usually a mistake in sparse checkout rules.
+		 * Do not allow users to do that.
+		 */
 		if (o->result.cache_nr && empty_worktree) {
-			/* dubious---why should this fail??? */
 			ret = unpack_failed(o, "Sparse checkout leaves no entry on working directory");
 			goto done;
 		}
@@ -1190,7 +1210,7 @@ static int verify_uptodate_1(struct cache_entry *ce,
 			return 0;
 		/*
 		 * NEEDSWORK: the current default policy is to allow
-		 * submodule to be out of sync wrt the supermodule
+		 * submodule to be out of sync wrt the superproject
 		 * index.  This needs to be tightened later for
 		 * submodules that are marked to be automatically
 		 * checked out.
@@ -1773,7 +1793,7 @@ int bind_merge(struct cache_entry **src,
 	struct cache_entry *a = src[1];
 
 	if (o->merge_size != 1)
-		return error("Cannot do a bind merge of %d trees\n",
+		return error("Cannot do a bind merge of %d trees",
 			     o->merge_size);
 	if (a && old)
 		return o->gently ? -1 :

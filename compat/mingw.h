@@ -27,9 +27,10 @@ typedef int socklen_t;
 #define S_IWOTH 0
 #define S_IXOTH 0
 #define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
-#define S_ISUID 0
-#define S_ISGID 0
-#define S_ISVTX 0
+
+#define S_ISUID 0004000
+#define S_ISGID 0002000
+#define S_ISVTX 0001000
 
 #define WIFEXITED(x) 1
 #define WIFSIGNALED(x) 0
@@ -125,7 +126,7 @@ static inline int fcntl(int fd, int cmd, ...)
  */
 
 #define WNOHANG 1
-pid_t waitpid(pid_t pid, int *status, unsigned options);
+pid_t waitpid(pid_t pid, int *status, int options);
 
 #define kill mingw_kill
 int mingw_kill(pid_t pid, int sig);
@@ -222,6 +223,9 @@ int mingw_putenv(const char *namevalue);
 #define putenv mingw_putenv
 #define unsetenv mingw_putenv
 
+int mingw_gethostname(char *host, int namelen);
+#define gethostname mingw_gethostname
+
 struct hostent *mingw_gethostbyname(const char *host);
 #define gethostbyname mingw_gethostbyname
 
@@ -303,9 +307,9 @@ int mingw_utime(const char *file_name, const struct utimbuf *times);
 pid_t mingw_spawnvpe(const char *cmd, const char **argv, char **env,
 		     const char *dir,
 		     int fhin, int fhout, int fherr);
-void mingw_execvp(const char *cmd, char *const *argv);
+int mingw_execvp(const char *cmd, char *const *argv);
 #define execvp mingw_execvp
-void mingw_execv(const char *cmd, char *const *argv);
+int mingw_execv(const char *cmd, char *const *argv);
 #define execv mingw_execv
 
 static inline unsigned int git_ntohl(unsigned int x)
@@ -488,3 +492,4 @@ int xwcstoutf(char *utf, const wchar_t *wcs, size_t utflen);
 #define __XUTF8_GITPRJ__
 #include "win32_xutf8.h"
 #endif /* __XUTF8_INIT__ */
+

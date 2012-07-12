@@ -86,83 +86,98 @@ static int local_tzoffset(unsigned long time)
 	return offset * eastwest;
 }
 
-const char *show_date_relative(unsigned long time, int tz,
+void show_date_relative(unsigned long time, int tz,
 			       const struct timeval *now,
-			       char *timebuf,
-			       size_t timebuf_size)
+			       struct strbuf *timebuf)
 {
 	unsigned long diff;
-	if (now->tv_sec < time)
-		return "in the future";
+	if (now->tv_sec < time) {
+		strbuf_addstr(timebuf, _("in the future"));
+		return;
+	}
 	diff = now->tv_sec - time;
 	if (diff < 90) {
-		snprintf(timebuf, timebuf_size, "%lu seconds ago", diff);
-		return timebuf;
+		strbuf_addf(timebuf,
+			 Q_("%lu second ago", "%lu seconds ago", diff), diff);
+		return;
 	}
 	/* Turn it into minutes */
 	diff = (diff + 30) / 60;
 	if (diff < 90) {
-		snprintf(timebuf, timebuf_size, "%lu minutes ago", diff);
-		return timebuf;
+		strbuf_addf(timebuf,
+			 Q_("%lu minute ago", "%lu minutes ago", diff), diff);
+		return;
 	}
 	/* Turn it into hours */
 	diff = (diff + 30) / 60;
 	if (diff < 36) {
-		snprintf(timebuf, timebuf_size, "%lu hours ago", diff);
-		return timebuf;
+		strbuf_addf(timebuf,
+			 Q_("%lu hour ago", "%lu hours ago", diff), diff);
+		return;
 	}
 	/* We deal with number of days from here on */
 	diff = (diff + 12) / 24;
 	if (diff < 14) {
-		snprintf(timebuf, timebuf_size, "%lu days ago", diff);
-		return timebuf;
+		strbuf_addf(timebuf,
+			 Q_("%lu day ago", "%lu days ago", diff), diff);
+		return;
 	}
 	/* Say weeks for the past 10 weeks or so */
 	if (diff < 70) {
-		snprintf(timebuf, timebuf_size, "%lu weeks ago", (diff + 3) / 7);
-		return timebuf;
+		strbuf_addf(timebuf,
+			 Q_("%lu week ago", "%lu weeks ago", (diff + 3) / 7),
+			 (diff + 3) / 7);
+		return;
 	}
 	/* Say months for the past 12 months or so */
 	if (diff < 365) {
-		snprintf(timebuf, timebuf_size, "%lu months ago", (diff + 15) / 30);
-		return timebuf;
+		strbuf_addf(timebuf,
+			 Q_("%lu month ago", "%lu months ago", (diff + 15) / 30),
+			 (diff + 15) / 30);
+		return;
 	}
 	/* Give years and months for 5 years or so */
 	if (diff < 1825) {
 		unsigned long totalmonths = (diff * 12 * 2 + 365) / (365 * 2);
 		unsigned long years = totalmonths / 12;
 		unsigned long months = totalmonths % 12;
-		int n;
-		n = snprintf(timebuf, timebuf_size, "%lu year%s",
-				years, (years > 1 ? "s" : ""));
-		if (months)
-			snprintf(timebuf + n, timebuf_size - n,
-					", %lu month%s ago",
-					months, (months > 1 ? "s" : ""));
-		else
-			snprintf(timebuf + n, timebuf_size - n, " ago");
-		return timebuf;
+		if (months) {
+			struct strbuf sb = STRBUF_INIT;
+			strbuf_addf(&sb, Q_("%lu year", "%lu years", years), years);
+			/* TRANSLATORS: "%s" is "<n> years" */
+			strbuf_addf(timebuf,
+				 Q_("%s, %lu month ago", "%s, %lu months ago", months),
+				 sb.buf, months);
+			strbuf_release(&sb);
+		} else
+			strbuf_addf(timebuf,
+				 Q_("%lu year ago", "%lu years ago", years), years);
+		return;
 	}
 	/* Otherwise, just years. Centuries is probably overkill. */
-	snprintf(timebuf, timebuf_size, "%lu years ago", (diff + 183) / 365);
-	return timebuf;
+	strbuf_addf(timebuf,
+		 Q_("%lu year ago", "%lu years ago", (diff + 183) / 365),
+		 (diff + 183) / 365);
 }
 
 const char *show_date(unsigned long time, int tz, enum date_mode mode)
 {
 	struct tm *tm;
-	static char timebuf[200];
+	static struct strbuf timebuf = STRBUF_INIT;
 
 	if (mode == DATE_RAW) {
-		snprintf(timebuf, sizeof(timebuf), "%lu %+05d", time, tz);
-		return timebuf;
+		strbuf_reset(&timebuf);
+		strbuf_addf(&timebuf, "%lu %+05d", time, tz);
+		return timebuf.buf;
 	}
 
 	if (mode == DATE_RELATIVE) {
 		struct timeval now;
+
+		strbuf_reset(&timebuf);
 		gettimeofday(&now, NULL);
-		return show_date_relative(time, tz, &now,
-					  timebuf, sizeof(timebuf));
+		show_date_relative(time, tz, &now, &timebuf);
+		return timebuf.buf;
 	}
 
 	if (mode == DATE_LOCAL)
@@ -171,23 +186,25 @@ const char *show_date(unsigned long time, int tz, enum date_mode mode)
 	tm = time_to_tm(time, tz);
 	if (!tm)
 		return NULL;
+
+	strbuf_reset(&timebuf);
 	if (mode == DATE_SHORT)
-		sprintf(timebuf, "%04d-%02d-%02d", tm->tm_year + 1900,
+		strbuf_addf(&timebuf, "%04d-%02d-%02d", tm->tm_year + 1900,
 				tm->tm_mon + 1, tm->tm_mday);
 	else if (mode == DATE_ISO8601)
-		sprintf(timebuf, "%04d-%02d-%02d %02d:%02d:%02d %+05d",
+		strbuf_addf(&timebuf, "%04d-%02d-%02d %02d:%02d:%02d %+05d",
 				tm->tm_year + 1900,
 				tm->tm_mon + 1,
 				tm->tm_mday,
 				tm->tm_hour, tm->tm_min, tm->tm_sec,
 				tz);
 	else if (mode == DATE_RFC2822)
-		sprintf(timebuf, "%.3s, %d %.3s %d %02d:%02d:%02d %+05d",
+		strbuf_addf(&timebuf, "%.3s, %d %.3s %d %02d:%02d:%02d %+05d",
 			weekday_names[tm->tm_wday], tm->tm_mday,
 			month_names[tm->tm_mon], tm->tm_year + 1900,
 			tm->tm_hour, tm->tm_min, tm->tm_sec, tz);
 	else
-		sprintf(timebuf, "%.3s %.3s %d %02d:%02d:%02d %d%c%+05d",
+		strbuf_addf(&timebuf, "%.3s %.3s %d %02d:%02d:%02d %d%c%+05d",
 				weekday_names[tm->tm_wday],
 				month_names[tm->tm_mon],
 				tm->tm_mday,
@@ -195,7 +212,7 @@ const char *show_date(unsigned long time, int tz, enum date_mode mode)
 				tm->tm_year + 1900,
 				(mode == DATE_LOCAL) ? 0 : ' ',
 				tz);
-	return timebuf;
+	return timebuf.buf;
 }
 
 /*
@@ -597,6 +614,33 @@ static int date_string(unsigned long date, int offset, char *buf, int len)
 	return snprintf(buf, len, "%lu %c%02d%02d", date, sign, offset / 60, offset % 60);
 }
 
+/*
+ * Parse a string like "0 +0000" as ancient timestamp near epoch, but
+ * only when it appears not as part of any other string.
+ */
+static int match_object_header_date(const char *date, unsigned long *timestamp, int *offset)
+{
+	char *end;
+	unsigned long stamp;
+	int ofs;
+
+	if (*date < '0' || '9' <= *date)
+		return -1;
+	stamp = strtoul(date, &end, 10);
+	if (*end != ' ' || stamp == ULONG_MAX || (end[1] != '+' && end[1] != '-'))
+		return -1;
+	date = end + 2;
+	ofs = strtol(date, &end, 10);
+	if ((*end != '\0' && (*end != '\n')) || end != date + 4)
+		return -1;
+	ofs = (ofs / 100) * 60 + (ofs % 100);
+	if (date[-1] == '-')
+		ofs = -ofs;
+	*timestamp = stamp;
+	*offset = ofs;
+	return 0;
+}
+
 /* Gr. strptime is crap for this; it doesn't have a way to require RFC2822
    (i.e. English) day/month names, and it doesn't work correctly with %z. */
 int parse_date_basic(const char *date, unsigned long *timestamp, int *offset)
@@ -622,6 +666,9 @@ int parse_date_basic(const char *date, unsigned long *timestamp, int *offset)
 	*offset = -1;
 	tm_gmt = 0;
 
+	if (*date == '@' &&
+	    !match_object_header_date(date + 1, timestamp, offset))
+		return 0; /* success */
 	for (;;) {
 		int match = 0;
 		unsigned char c = *date;

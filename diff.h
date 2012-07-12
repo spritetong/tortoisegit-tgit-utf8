@@ -12,6 +12,8 @@ struct diff_queue_struct;
 struct strbuf;
 struct diff_filespec;
 struct userdiff_driver;
+struct sha1_array;
+struct commit;
 
 typedef void (*change_fn_t)(struct diff_options *options,
 		 unsigned old_mode, unsigned new_mode,
@@ -58,7 +60,7 @@ typedef struct strbuf *(*diff_prefix_fn_t)(struct diff_options *opt, void *data)
 #define DIFF_OPT_SILENT_ON_REMOVE    (1 <<  5)
 #define DIFF_OPT_FIND_COPIES_HARDER  (1 <<  6)
 #define DIFF_OPT_FOLLOW_RENAMES      (1 <<  7)
-/* (1 <<  8) unused */
+#define DIFF_OPT_RENAME_EMPTY        (1 <<  8)
 /* (1 <<  9) unused */
 #define DIFF_OPT_HAS_CHANGES         (1 << 10)
 #define DIFF_OPT_QUICK               (1 << 11)
@@ -79,6 +81,8 @@ typedef struct strbuf *(*diff_prefix_fn_t)(struct diff_options *opt, void *data)
 #define DIFF_OPT_IGNORE_DIRTY_SUBMODULES (1 << 26)
 #define DIFF_OPT_OVERRIDE_SUBMODULE_CONFIG (1 << 27)
 #define DIFF_OPT_DIRSTAT_BY_LINE     (1 << 28)
+#define DIFF_OPT_FUNCCONTEXT         (1 << 29)
+#define DIFF_OPT_PICKAXE_IGNORE_CASE (1 << 30)
 
 #define DIFF_OPT_TST(opts, flag)    ((opts)->flags & DIFF_OPT_##flag)
 #define DIFF_OPT_SET(opts, flag)    ((opts)->flags |= DIFF_OPT_##flag)
@@ -86,6 +90,8 @@ typedef struct strbuf *(*diff_prefix_fn_t)(struct diff_options *opt, void *data)
 #define DIFF_XDL_TST(opts, flag)    ((opts)->xdl_opts & XDF_##flag)
 #define DIFF_XDL_SET(opts, flag)    ((opts)->xdl_opts |= XDF_##flag)
 #define DIFF_XDL_CLR(opts, flag)    ((opts)->xdl_opts &= ~XDF_##flag)
+
+#define DIFF_WITH_ALG(opts, flag)   (((opts)->xdl_opts & ~XDF_DIFF_ALGORITHM_MASK) | XDF_##flag)
 
 enum diff_words_type {
 	DIFF_WORDS_NONE = 0,
@@ -126,6 +132,7 @@ struct diff_options {
 
 	int stat_width;
 	int stat_name_width;
+	int stat_graph_width;
 	int stat_count;
 	const char *word_regex;
 	enum diff_words_type word_diff;
@@ -145,6 +152,7 @@ struct diff_options {
 	diff_format_fn_t format_callback;
 	void *format_callback_data;
 	diff_prefix_fn_t output_prefix;
+	int output_prefix_length;
 	void *output_prefix_data;
 };
 
@@ -208,9 +216,9 @@ struct combine_diff_path {
 extern void show_combined_diff(struct combine_diff_path *elem, int num_parent,
 			      int dense, struct rev_info *);
 
-extern void diff_tree_combined(const unsigned char *sha1, const unsigned char parent[][20], int num_parent, int dense, struct rev_info *rev);
+extern void diff_tree_combined(const unsigned char *sha1, const struct sha1_array *parents, int dense, struct rev_info *rev);
 
-extern void diff_tree_combined_merge(const unsigned char *sha1, int, struct rev_info *);
+extern void diff_tree_combined_merge(const struct commit *commit, int dense, struct rev_info *rev);
 
 void diff_set_mnemonic_prefix(struct diff_options *options, const char *a, const char *b);
 
@@ -334,5 +342,8 @@ extern size_t fill_textconv(struct userdiff_driver *driver,
 extern struct userdiff_driver *get_textconv(struct diff_filespec *one);
 
 extern int parse_rename_score(const char **cp_p);
+
+extern int print_stat_summary(FILE *fp, int files,
+			      int insertions, int deletions);
 
 #endif /* DIFF_H */

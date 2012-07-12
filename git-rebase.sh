@@ -43,6 +43,7 @@ s,strategy=!       use the given merge strategy
 no-ff!             cherry-pick all commits, even if unchanged
 m,merge!           use merging strategies to rebase
 i,interactive!     let the user edit the list of commits to rebase
+k,keep-empty	   preserve empty commits during rebase
 f,force-rebase!    force rebase even if branch is up to date
 X,strategy-option=! pass the argument through to the merge strategy
 stat!              display a diffstat of what changed upstream
@@ -97,6 +98,7 @@ state_dir=
 action=
 preserve_merges=
 autosquash=
+keep_empty=
 test "$(git config --bool rebase.autosquash)" = "true" && autosquash=t
 
 read_basic_state () {
@@ -165,6 +167,7 @@ run_specific_rebase () {
 	if [ "$interactive_rebase" = implied ]; then
 		GIT_EDITOR=:
 		export GIT_EDITOR
+		autosquash=
 	fi
 	. git-rebase--$type
 }
@@ -219,6 +222,9 @@ do
 		;;
 	-i)
 		interactive_rebase=explicit
+		;;
+	-k)
+		keep_empty=yes
 		;;
 	-p)
 		preserve_merges=t
@@ -380,7 +386,7 @@ then
 		then
 			. git-parse-remote
 			error_on_missing_default_upstream "rebase" "rebase" \
-				"against" "git rebase <upstream branch>"
+				"against" "git rebase <branch>"
 		fi
 		;;
 	*)	upstream_name="$1"
@@ -418,7 +424,7 @@ case "$onto_name" in
 	;;
 *)
 	onto=$(git rev-parse --verify "${onto_name}^0") ||
-	die "Does not point to a valid commit: $1"
+	die "Does not point to a valid commit: $onto_name"
 	;;
 esac
 
