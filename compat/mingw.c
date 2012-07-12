@@ -45,7 +45,7 @@ void add_handle(long long x, int flag)
 	p_opened_file_handle[p_opened_file_size++] = handle;
 }
 
-void remove_handle(long long x, int flag)
+int remove_handle(long long x, int flag)
 {
 	int i=0;
 	struct open_data handle;
@@ -53,17 +53,20 @@ void remove_handle(long long x, int flag)
 	handle.flag = flag;
 
 	if(p_opened_file_handle == NULL)
-		return;
+		return FALSE;
 
 	for(i=0;i<p_opened_file_size;i++)
 	{
 		if(p_opened_file_handle[i].data == handle.data && p_opened_file_handle[i].flag == handle.flag)
 		{
-			memcpy(p_opened_file_handle+i, p_opened_file_handle+i+1, sizeof(int)*(p_opened_file_size-i-1));
+			if (i != p_opened_file_size - 1)
+				memmove(p_opened_file_handle + i, p_opened_file_handle + i + 1, (p_opened_file_size - i - 1) * sizeof *(p_opened_file_handle));
+
 			p_opened_file_size--;
-			return;
+			return TRUE;
 		}
 	}
+	return FALSE;
 }
 
 #undef close
@@ -282,16 +285,16 @@ static int ask_yes_no_if_possible(const char *format, ...)
 	}
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef unlink
-#endif
 int mingw_unlink(const char *pathname)
 {
 	int ret, tries = 0;
+	wchar_t wpathname[MAX_PATH];
+	if (xutftowcs_path(wpathname, pathname) < 0)
+		return -1;
 
 	/* read-only files cannot be removed */
-	chmod(pathname, 0666);
-	while ((ret = unlink(pathname)) == -1 && tries < ARRAY_SIZE(delay)) {
+	_wchmod(wpathname, 0666);
+	while ((ret = _wunlink(wpathname)) == -1 && tries < ARRAY_SIZE(delay)) {
 		if (!is_file_in_use_error(GetLastError()))
 			break;
 		/*
@@ -307,45 +310,43 @@ int mingw_unlink(const char *pathname)
 	while (ret == -1 && is_file_in_use_error(GetLastError()) &&
 	       ask_yes_no_if_possible("Unlink of file '%s' failed. "
 			"Should I try again?", pathname))
-	       ret = unlink(pathname);
+	       ret = _wunlink(wpathname);
 	return ret;
 }
 
-static int is_dir_empty(const char *path)
+static int is_dir_empty(const wchar_t *wpath)
 {
-	struct strbuf buf = STRBUF_INIT;
-	WIN32_FIND_DATAA findbuf;
+	WIN32_FIND_DATAW findbuf;
 	HANDLE handle;
-
-	strbuf_addf(&buf, "%s\\*", path);
-	handle = FindFirstFileA(buf.buf, &findbuf);
-	if (handle == INVALID_HANDLE_VALUE) {
-		strbuf_release(&buf);
+	wchar_t wbuf[MAX_PATH + 2];
+	wcscpy(wbuf, wpath);
+	wcscat(wbuf, L"\\*");
+	handle = FindFirstFileW(wbuf, &findbuf);
+	if (handle == INVALID_HANDLE_VALUE)
 		return GetLastError() == ERROR_NO_MORE_FILES;
-	}
 
-	while (!strcmp(findbuf.cFileName, ".") ||
-			!strcmp(findbuf.cFileName, ".."))
-		if (!FindNextFile(handle, &findbuf)) {
-			strbuf_release(&buf);
-			return GetLastError() == ERROR_NO_MORE_FILES;
+	while (!wcscmp(findbuf.cFileName, L".") ||
+			!wcscmp(findbuf.cFileName, L".."))
+		if (!FindNextFileW(handle, &findbuf)) {
+			DWORD err = GetLastError();
+			FindClose(handle);
+			return err == ERROR_NO_MORE_FILES;
 		}
 	FindClose(handle);
-	strbuf_release(&buf);
 	return 0;
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef rmdir
-#endif
 int mingw_rmdir(const char *pathname)
 {
 	int ret, tries = 0;
+	wchar_t wpathname[MAX_PATH];
+	if (xutftowcs_path(wpathname, pathname) < 0)
+		return -1;
 
-	while ((ret = rmdir(pathname)) == -1 && tries < ARRAY_SIZE(delay)) {
+	while ((ret = _wrmdir(wpathname)) == -1 && tries < ARRAY_SIZE(delay)) {
 		if (!is_file_in_use_error(GetLastError()))
 			break;
-		if (!is_dir_empty(pathname)) {
+		if (!is_dir_empty(wpathname)) {
 			errno = ENOTEMPTY;
 			break;
 		}
@@ -362,22 +363,20 @@ int mingw_rmdir(const char *pathname)
 	while (ret == -1 && is_file_in_use_error(GetLastError()) &&
 	       ask_yes_no_if_possible("Deletion of directory '%s' failed. "
 			"Should I try again?", pathname))
-	       ret = rmdir(pathname);
+	       ret = _wrmdir(wpathname);
 	return ret;
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef mkdir
-#endif
 int mingw_mkdir(const char *path, int mode)
 {
-	return mkdir(path);
+	int ret;
+	wchar_t wpath[MAX_PATH];
+	if (xutftowcs_path(wpath, path) < 0)
+		return -1;
+	return _wmkdir(wpath);
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef open
-#endif
-int mingw_open (const char *filename, int oflags, ...)
+int mingw_open(const char *filename, int oflags, ...)
 {
 	va_list args;
 	unsigned mode;
@@ -424,10 +423,7 @@ ssize_t mingw_write(int fd, const void *buf, size_t count)
 	return write(fd, buf, min(count, 31 * 1024 * 1024));
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef freopen
-#endif
-FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
+FILE *mingw_freopen(const char *filename, const char *otype, FILE *stream)
 {
 	int hide = 0;
 	FILE *file;
@@ -441,10 +437,7 @@ FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
 	return file;
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef fopen
-#endif
-FILE *mingw_fopen (const char *filename, const char *otype)
+FILE *mingw_fopen(const char *filename, const char *otype)
 {
 	FILE *file;
 	wchar_t wfilename[MAX_PATH], wotype[4];
@@ -462,7 +455,7 @@ FILE *mingw_fopen (const char *filename, const char *otype)
 }
 
 #undef fclose
-int mingw_fclose (FILE * stream)
+int mingw_fclose(FILE * stream)
 {
 	remove_handle((long long)stream, OPEN_FILE);
 	return fclose(stream);
@@ -481,9 +474,14 @@ static inline long long filetime_to_hnsec(const FILETIME *ft)
 int mingw_close(int fileHandle)
 {
 	if(fileHandle>=0)
-		remove_handle(fileHandle,OPEN_HANDLE);
-
-	return close(fileHandle);
+	{
+		if (remove_handle(fileHandle, OPEN_HANDLE) == TRUE)
+			return close(fileHandle);
+		else
+			return FALSE;
+	}
+	else
+		return close(fileHandle);
 }
 
 static inline time_t filetime_to_time_t(const FILETIME *ft)
@@ -744,19 +742,43 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 	return result;
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef getcwd
-#endif
 char *mingw_getcwd(char *pointer, int len)
 {
 	int i;
-	char *ret = getcwd(pointer, len);
-	if (!ret)
-		return ret;
+	wchar_t wpointer[MAX_PATH];
+	if (!_wgetcwd(wpointer, ARRAY_SIZE(wpointer)))
+		return NULL;
+	if (xwcstoutf(pointer, wpointer, len) < 0)
+		return NULL;
 	for (i = 0; pointer[i]; i++)
 		if (pointer[i] == '\\')
 			pointer[i] = '/';
-	return ret;
+	return pointer;
+}
+
+int mingw_access(const char *filename, int mode)
+{
+	wchar_t wfilename[MAX_PATH];
+	if (xutftowcs_path(wfilename, filename) < 0)
+		return -1;
+	/* X_OK is not supported by the MSVCRT version */
+	return _waccess(wfilename, mode & ~X_OK);
+}
+
+int mingw_chdir(const char *dirname)
+{
+	wchar_t wdirname[MAX_PATH];
+	if (xutftowcs_path(wdirname, dirname) < 0)
+		return -1;
+	return _wchdir(wdirname);
+}
+
+int mingw_chmod(const char *filename, int mode)
+{
+	wchar_t wfilename[MAX_PATH];
+	if (xutftowcs_path(wfilename, filename) < 0)
+		return -1;
+	return _wchmod(wfilename, mode);
 }
 
 /*
@@ -911,14 +933,21 @@ static void free_path_split(char **path)
 static char *lookup_prog(const char *dir, const char *cmd, int isexe, int exe_only)
 {
 	char path[MAX_PATH];
-	snprintf(path, sizeof(path), "%s/%s.exe", dir, cmd);
+	wchar_t wpath[MAX_PATH];
+	snprintf(path, sizeof(path), "%s\\%s.exe", dir, cmd);
 
-	if (!isexe && access(path, F_OK) == 0)
+	if (xutftowcs_path(wpath, path) < 0)
+		return NULL;
+
+	if (!isexe && _waccess(wpath, F_OK) == 0)
 		return xstrdup(path);
-	path[strlen(path)-4] = '\0';
-	if ((!exe_only || isexe) && access(path, F_OK) == 0)
-		if (!(GetFileAttributes(path) & FILE_ATTRIBUTE_DIRECTORY))
+	wpath[wcslen(wpath)-4] = '\0';
+	if ((!exe_only || isexe) && _waccess(wpath, F_OK) == 0) {
+		if (!(GetFileAttributesW(wpath) & FILE_ATTRIBUTE_DIRECTORY)) {
+			path[strlen(path)-4] = '\0';
 			return xstrdup(path);
+		}
+	}
 	return NULL;
 }
 
@@ -1222,12 +1251,25 @@ void free_environ(char **env)
 	free(env);
 }
 
-static int lookup_env(char **env, const char *name, size_t nmln)
+static int lookup_env(wchar_t **env, const wchar_t *name, size_t nmln)
 {
 	int i;
 
 	for (i = 0; env[i]; i++) {
-		if (0 == strncmp(env[i], name, nmln)
+		if (0 == wcsncmp(env[i], name, nmln)
+		    && '=' == env[i][nmln])
+			/* matches */
+			return i;
+	}
+	return -1;
+}
+
+static int lookup_env_icase(wchar_t **env, const wchar_t *name, size_t nmln)
+{
+	int i;
+
+	for (i = 0; env[i]; i++) {
+		if (0 == wcscmp(env[i], name)
 		    && '=' == env[i][nmln])
 			/* matches */
 			return i;
@@ -1275,10 +1317,6 @@ char **make_augmented_environ(const char *const *vars)
 	return env;
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef getenv
-#endif
-
 /*
  * The system's getenv looks up the name in a case-insensitive manner.
  * This version tries a case-sensitive lookup and falls back to
@@ -1289,10 +1327,19 @@ char **make_augmented_environ(const char *const *vars)
 static char *getenv_cs(const char *name)
 {
 	size_t len = strlen(name);
-	int i = lookup_env(environ, name, len);
+	wchar_t * wpointer = NULL;
+	wchar_t wname[MAX_PATH];
+	char pointer[MAX_PATH];
+	int i = -1;
+	xutftowcsn(wname, name, MAX_PATH, len);
+	i = lookup_env(_wenviron, wname, len);
 	if (i >= 0)
-		return environ[i] + len + 1;	/* skip past name and '=' */
-	return getenv(name);
+		wpointer = _wenviron[i] + len + 1;	/* skip past name and '=' */
+	if (!wpointer)
+		wpointer= _wgetenv(wname);
+	if (!wpointer || xwcstoutf(pointer, wpointer, MAX_PATH) < 0)
+		return NULL;
+	return xstrdup(pointer);
 }
 
 char *mingw_getenv(const char *name)
@@ -1305,6 +1352,30 @@ char *mingw_getenv(const char *name)
 			result = getenv_cs("TEMP");
 	}
 	return result;
+}
+
+int mingw_putenv(const char *namevalue)
+{
+	wchar_t * wpointer[MAX_PATH + 50];
+	if (!strchr(namevalue, '='))
+	{
+		struct strbuf sb = STRBUF_INIT;
+		strbuf_addstr(&sb, namevalue);
+		strbuf_addch(&sb, '=');
+		if (xutftowcs(wpointer, sb.buf, MAX_PATH + 50) < 0)
+		{
+			strbuf_release(&sb);
+			return -1;
+		}
+		strbuf_release(&sb);
+	}
+	else
+	{
+		if (xutftowcs(wpointer, namevalue, MAX_PATH + 50) < 0)
+			return -1;
+	}
+
+	return _wputenv(wpointer);
 }
 
 /*
@@ -1592,40 +1663,40 @@ int mingw_accept(int sockfd1, struct sockaddr *sa, socklen_t *sz)
 	return sockfd2;
 }
 
-#ifndef __XUTF8_ENABLED__ /* For UTF-8. Changed by Sprite Tong, 12/1/2011. */
-#undef rename
-#endif
 int mingw_rename(const char *pold, const char *pnew)
 {
 	DWORD attrs, gle;
 	int tries = 0;
+	wchar_t wpold[MAX_PATH], wpnew[MAX_PATH];
+	if (xutftowcs_path(wpold, pold) < 0 || xutftowcs_path(wpnew, pnew) < 0)
+		return -1;
 
 	/*
 	 * Try native rename() first to get errno right.
 	 * It is based on MoveFile(), which cannot overwrite existing files.
 	 */
-	if (!rename(pold, pnew))
+	if (!_wrename(wpold, wpnew))
 		return 0;
 	if (errno != EEXIST)
 		return -1;
 repeat:
-	if (MoveFileEx(pold, pnew, MOVEFILE_REPLACE_EXISTING))
+	if (MoveFileExW(wpold, wpnew, MOVEFILE_REPLACE_EXISTING))
 		return 0;
 	/* TODO: translate more errors */
 	gle = GetLastError();
 	if (gle == ERROR_ACCESS_DENIED &&
-	    (attrs = GetFileAttributes(pnew)) != INVALID_FILE_ATTRIBUTES) {
+	    (attrs = GetFileAttributesW(wpnew)) != INVALID_FILE_ATTRIBUTES) {
 		if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
 			errno = EISDIR;
 			return -1;
 		}
 		if ((attrs & FILE_ATTRIBUTE_READONLY) &&
-		    SetFileAttributes(pnew, attrs & ~FILE_ATTRIBUTE_READONLY)) {
-			if (MoveFileEx(pold, pnew, MOVEFILE_REPLACE_EXISTING))
+		    SetFileAttributesW(wpnew, attrs & ~FILE_ATTRIBUTE_READONLY)) {
+			if (MoveFileExW(wpold, wpnew, MOVEFILE_REPLACE_EXISTING))
 				return 0;
 			gle = GetLastError();
 			/* revert file attributes on failure */
-			SetFileAttributes(pnew, attrs);
+			SetFileAttributesW(wpnew, attrs);
 		}
 	}
 	if (tries < ARRAY_SIZE(delay) && gle == ERROR_ACCESS_DENIED) {
@@ -1835,11 +1906,16 @@ void mingw_open_html(const char *unixpath)
 
 int link(const char *oldpath, const char *newpath)
 {
-	typedef BOOL (WINAPI *T)(const char*, const char*, LPSECURITY_ATTRIBUTES);
+	typedef BOOL (WINAPI *T)(LPCWSTR, LPCWSTR, LPSECURITY_ATTRIBUTES);
 	static T create_hard_link = NULL;
+	wchar_t woldpath[MAX_PATH], wnewpath[MAX_PATH];
+	if (xutftowcs_path(woldpath, oldpath) < 0 ||
+		xutftowcs_path(wnewpath, newpath) < 0)
+		return -1;
+
 	if (!create_hard_link) {
 		create_hard_link = (T) GetProcAddress(
-			GetModuleHandle("kernel32.dll"), "CreateHardLinkA");
+			GetModuleHandle("kernel32.dll"), "CreateHardLinkW");
 		if (!create_hard_link)
 			create_hard_link = (T)-1;
 	}
@@ -1847,7 +1923,7 @@ int link(const char *oldpath, const char *newpath)
 		errno = ENOSYS;
 		return -1;
 	}
-	if (!create_hard_link(newpath, oldpath, NULL)) {
+	if (!create_hard_link(wnewpath, woldpath, NULL)) {
 		errno = err_win_to_posix(GetLastError());
 		return -1;
 	}

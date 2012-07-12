@@ -1,10 +1,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
-/* For UTF-8, suppress compiler warnings. Added by Sprite Tong, 12/5/2011. */
 #include <io.h>
-#undef EWOULDBLOCK
-#undef EAFNOSUPPORT
-#undef ECONNABORTED
+/* For UTF-8, suppress compiler warnings. Added by Sprite Tong, 12/5/2011. */
 #undef freeaddrinfo
 #undef getaddrinfo
 #undef getnameinfo
@@ -39,7 +36,9 @@ typedef int socklen_t;
 #define WEXITSTATUS(x) ((x) & 0xff)
 #define WTERMSIG(x) SIGTERM
 
+#ifndef EWOULDBLOCK
 #define EWOULDBLOCK EAGAIN
+#endif
 #define SHUT_WR SD_SEND
 
 #define SIGHUP 1
@@ -53,8 +52,12 @@ typedef int socklen_t;
 #define F_SETFD 2
 #define FD_CLOEXEC 0x1
 
+#ifndef EAFNOSUPPORT
 #define EAFNOSUPPORT WSAEAFNOSUPPORT
+#endif
+#ifndef ECONNABORTED
 #define ECONNABORTED WSAECONNABORTED
+#endif
 
 struct passwd {
 	char *pw_name;
@@ -121,10 +124,6 @@ static inline int fcntl(int fd, int cmd, ...)
  * simple adaptors
  */
 
-/* For UTF-8. Chanaged by Sprite Tong, 12/1/2011. */
-int mingw_mkdir(const char *path, int mode);
-#define mkdir mingw_mkdir
-
 #define WNOHANG 1
 pid_t waitpid(pid_t pid, int *status, unsigned options);
 
@@ -180,6 +179,9 @@ int mingw_unlink(const char *pathname);
 int mingw_rmdir(const char *path);
 #define rmdir mingw_rmdir
 
+int mingw_mkdir(const char *path, int mode);
+#define mkdir mingw_mkdir
+
 int mingw_open (const char *filename, int oflags, ...);
 #define open mingw_open
 
@@ -198,11 +200,27 @@ FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream);
 int mingw_close(int fileHandle);
 #define close mingw_close
 
+int mingw_access(const char *filename, int mode);
+#undef access
+#define access mingw_access
+
+int mingw_chdir(const char *dirname);
+#define chdir mingw_chdir
+
+int mingw_chmod(const char *filename, int mode);
+#define chmod mingw_chmod
+
 char *mingw_getcwd(char *pointer, int len);
 #define getcwd mingw_getcwd
 
+int mingw_rename(const char*, const char*);
+#define rename mingw_rename
+
 char *mingw_getenv(const char *name);
 #define getenv mingw_getenv
+int mingw_putenv(const char *namevalue);
+#define putenv mingw_putenv
+#define unsetenv mingw_putenv
 
 struct hostent *mingw_gethostbyname(const char *host);
 #define gethostbyname mingw_gethostbyname

@@ -22,7 +22,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)..\bin\$(ConfigurationName)\bin"
-			IntermediateDirectory="$(SolutionDir)\..\obj\libgit\$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)..\obj\libgit\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="0"
 			>
@@ -88,7 +88,7 @@
 		<Configuration
 			Name="Debug|x64"
 			OutputDirectory="$(SolutionDir)..\bin\$(ConfigurationName)64\bin"
-			IntermediateDirectory="$(SolutionDir)\..\obj\libgit\$(ConfigurationName)64"
+			IntermediateDirectory="$(SolutionDir)..\obj\libgit\$(ConfigurationName)64"
 			ConfigurationType="4"
 			CharacterSet="0"
 			>
@@ -155,7 +155,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)..\bin\$(ConfigurationName)\bin"
-			IntermediateDirectory="$(SolutionDir)\..\obj\libgit\$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)..\obj\libgit\$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
@@ -221,7 +221,7 @@
 		<Configuration
 			Name="Release|x64"
 			OutputDirectory="$(SolutionDir)..\bin\$(ConfigurationName)64\bin"
-			IntermediateDirectory="$(SolutionDir)\..\obj\libgit\$(ConfigurationName)64"
+			IntermediateDirectory="$(SolutionDir)..\obj\libgit\$(ConfigurationName)64"
 			ConfigurationType="4"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
@@ -723,10 +723,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\compat\strtoumax.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\compat\unsetenv.c"
 				>
 			</File>
 			<File
@@ -1329,7 +1325,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInArchive"
+						ObjectFile="$(IntDir)\BuildInArchive.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1337,7 +1333,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInArchive"
+						ObjectFile="$(IntDir)\BuildInArchive.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1345,7 +1341,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInArchive"
+						ObjectFile="$(IntDir)\BuildInArchive.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1353,7 +1349,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInArchive"
+						ObjectFile="$(IntDir)\BuildInArchive.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1373,7 +1369,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBranch"
+						ObjectFile="$(IntDir)\BuildInBranch.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1381,7 +1377,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBranch"
+						ObjectFile="$(IntDir)\BuildInBranch.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1389,7 +1385,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBranch"
+						ObjectFile="$(IntDir)\BuildInBranch.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1397,7 +1393,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBranch"
+						ObjectFile="$(IntDir)\BuildInBranch.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1409,7 +1405,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBundle"
+						ObjectFile="$(IntDir)\BuildInBundle.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1417,7 +1413,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBundle"
+						ObjectFile="$(IntDir)\BuildInBundle.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1425,7 +1421,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBundle"
+						ObjectFile="$(IntDir)\BuildInBundle.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1433,7 +1429,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInBundle"
+						ObjectFile="$(IntDir)\BuildInBundle.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1477,7 +1473,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInCommit"
+						ObjectFile="$(IntDir)\BuildInCommit.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1485,7 +1481,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInCommit"
+						ObjectFile="$(IntDir)\BuildInCommit.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1493,7 +1489,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInCommit"
+						ObjectFile="$(IntDir)\BuildInCommit.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1501,7 +1497,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInCommit"
+						ObjectFile="$(IntDir)\BuildInCommit.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1513,7 +1509,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInConfig"
+						ObjectFile="$(IntDir)\BuildInConfig.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1521,7 +1517,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInConfig"
+						ObjectFile="$(IntDir)\BuildInConfig.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1529,7 +1525,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInConfig"
+						ObjectFile="$(IntDir)\BuildInConfig.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1537,7 +1533,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInConfig"
+						ObjectFile="$(IntDir)\BuildInConfig.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1569,7 +1565,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInDiff"
+						ObjectFile="$(IntDir)\BuildInDiff.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1577,7 +1573,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInDiff"
+						ObjectFile="$(IntDir)\BuildInDiff.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1585,7 +1581,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInDiff"
+						ObjectFile="$(IntDir)\BuildInDiff.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1593,7 +1589,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInDiff"
+						ObjectFile="$(IntDir)\BuildInDiff.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1625,7 +1621,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildInfsck"
+						ObjectFile="$(IntDir)\buildInfsck.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1633,7 +1629,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildInfsck"
+						ObjectFile="$(IntDir)\buildInfsck.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1641,7 +1637,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildInfsck"
+						ObjectFile="$(IntDir)\buildInfsck.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1649,7 +1645,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildInfsck"
+						ObjectFile="$(IntDir)\buildInfsck.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1665,7 +1661,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInGrep"
+						ObjectFile="$(IntDir)\BuildInGrep.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1673,7 +1669,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInGrep"
+						ObjectFile="$(IntDir)\BuildInGrep.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1681,7 +1677,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInGrep"
+						ObjectFile="$(IntDir)\BuildInGrep.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1689,45 +1685,13 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInGrep"
+						ObjectFile="$(IntDir)\BuildInGrep.obj"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\builtin\hash-object.c"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildinhashobject"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildinhashobject"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildinhashobject"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\buildinhashobject"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\builtin\help.c"
@@ -1737,7 +1701,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInHelp"
+						ObjectFile="$(IntDir)\BuildInHelp.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1745,7 +1709,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInHelp"
+						ObjectFile="$(IntDir)\BuildInHelp.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1753,7 +1717,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInHelp"
+						ObjectFile="$(IntDir)\BuildInHelp.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1761,7 +1725,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInHelp"
+						ObjectFile="$(IntDir)\BuildInHelp.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1809,7 +1773,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeFile"
+						ObjectFile="$(IntDir)\BuildInMergeFile.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1817,7 +1781,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeFile"
+						ObjectFile="$(IntDir)\BuildInMergeFile.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1825,7 +1789,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeFile"
+						ObjectFile="$(IntDir)\BuildInMergeFile.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1833,7 +1797,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeFile"
+						ObjectFile="$(IntDir)\BuildInMergeFile.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1853,7 +1817,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeRecursive"
+						ObjectFile="$(IntDir)\BuildInMergeRecursive.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1861,7 +1825,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeRecursive"
+						ObjectFile="$(IntDir)\BuildInMergeRecursive.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1869,7 +1833,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeRecursive"
+						ObjectFile="$(IntDir)\BuildInMergeRecursive.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1877,7 +1841,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMergeRecursive"
+						ObjectFile="$(IntDir)\BuildInMergeRecursive.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1893,7 +1857,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMerge"
+						ObjectFile="$(IntDir)\BuildInMerge.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1901,7 +1865,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMerge"
+						ObjectFile="$(IntDir)\BuildInMerge.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1909,7 +1873,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMerge"
+						ObjectFile="$(IntDir)\BuildInMerge.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1917,7 +1881,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInMerge"
+						ObjectFile="$(IntDir)\BuildInMerge.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1945,7 +1909,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInNotes"
+						ObjectFile="$(IntDir)\BuildInNotes.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1953,7 +1917,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInNotes"
+						ObjectFile="$(IntDir)\BuildInNotes.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1961,7 +1925,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInNotes"
+						ObjectFile="$(IntDir)\BuildInNotes.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1969,7 +1933,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInNotes"
+						ObjectFile="$(IntDir)\BuildInNotes.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1989,7 +1953,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInPackRefs"
+						ObjectFile="$(IntDir)\BuildInPackRefs.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1997,7 +1961,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInPackRefs"
+						ObjectFile="$(IntDir)\BuildInPackRefs.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2005,7 +1969,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInPackRefs"
+						ObjectFile="$(IntDir)\BuildInPackRefs.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2013,7 +1977,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInPackRefs"
+						ObjectFile="$(IntDir)\BuildInPackRefs.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -2061,7 +2025,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRemote"
+						ObjectFile="$(IntDir)\BuildInRemote.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2069,7 +2033,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRemote"
+						ObjectFile="$(IntDir)\BuildInRemote.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2077,7 +2041,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRemote"
+						ObjectFile="$(IntDir)\BuildInRemote.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2085,7 +2049,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRemote"
+						ObjectFile="$(IntDir)\BuildInRemote.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -2101,7 +2065,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRerer"
+						ObjectFile="$(IntDir)\BuildInRerer.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2109,7 +2073,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRerer"
+						ObjectFile="$(IntDir)\BuildInRerer.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2117,7 +2081,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRerer"
+						ObjectFile="$(IntDir)\BuildInRerer.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2125,7 +2089,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInRerer"
+						ObjectFile="$(IntDir)\BuildInRerer.obj"
 					/>
 				</FileConfiguration>
 			</File>
@@ -2177,7 +2141,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInTag"
+						ObjectFile="$(IntDir)\BuildInTag.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2185,7 +2149,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInTag"
+						ObjectFile="$(IntDir)\BuildInTag.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2193,7 +2157,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInTag"
+						ObjectFile="$(IntDir)\BuildInTag.obj"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -2201,7 +2165,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\BuildInTag"
+						ObjectFile="$(IntDir)\BuildInTag.obj"
 					/>
 				</FileConfiguration>
 			</File>
