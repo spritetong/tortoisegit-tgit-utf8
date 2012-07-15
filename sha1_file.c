@@ -731,12 +731,10 @@ void free_pack_by_name(const char *pack_name)
 	}
 }
 
-static struct packed_git *last_found = (void *)1;
 static int prepare_packed_git_run_once = 0;
 void free_all_pack()
 {
 	struct packed_git *p, **pp = &packed_git;
-	last_found = (void *)1;
 
 	while (*pp) {
 		p = *pp;
@@ -1139,7 +1137,6 @@ void prepare_packed_git(void)
 
 void reprepare_packed_git(void)
 {
-	last_found = (void*)1;
 	discard_revindex();
 	prepare_packed_git_run_once = 0;
 	prepare_packed_git();
