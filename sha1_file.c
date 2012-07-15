@@ -732,24 +732,46 @@ void free_pack_by_name(const char *pack_name)
 }
 
 static int prepare_packed_git_run_once = 0;
+int has_open_pack_windows(struct packed_git *p)
+{
+	struct pack_window *w, **ww = &p->windows;
+
+	while (*ww)
+	{
+		w = *ww;
+		if (w->inuse_cnt)
+			return 1;
+		ww = &w->next;
+	}
+	return 0;
+}
+
 void free_all_pack()
 {
 	struct packed_git *p, **pp = &packed_git;
 
+	clear_delta_base_cache();
+
 	while (*pp) {
 		p = *pp;
-		close_pack_windows(p);
-		if (p->pack_fd != -1) {
-			close(p->pack_fd);
-			pack_open_fds--;
+		if (!has_open_pack_windows(p))
+		{
+			close_pack_windows(p);
+			if (p->pack_fd != -1) {
+				close(p->pack_fd);
+				pack_open_fds--;
+			}
+			close_pack_index(p);
+			free(p->bad_object_sha1);
+			*pp = p->next;
+			if (last_found_pack == p)
+				last_found_pack = NULL;
+			free(p);
 		}
-		close_pack_index(p);
-		free(p->bad_object_sha1);
-		*pp = p->next;
-		free(p);
+		else
+			pp = &p->next;
 	}
 	prepare_packed_git_run_once = 0;
-	last_found_pack = NULL;
 }
 
 /*
